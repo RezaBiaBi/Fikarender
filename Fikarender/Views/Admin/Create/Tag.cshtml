@@ -1,0 +1,51 @@
+﻿
+@model Tag
+<style>
+    #create-form .fa-clone {
+        position: absolute;
+        cursor: pointer;
+        left: 0;
+        color: #ff0000;
+        border: 1px solid #ff0000;
+        border-radius: 5px;
+        padding: 3px;
+        font-size: 20px
+    }
+</style>
+<div id="create-modal" uk-modal="bg-close: false">
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">افزودن تگ جدید</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form id="create-form" asp-controller="Admin" asp-action="Tag" method="post">
+                <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="Name" class="uk-form-label"></label>
+                        <input asp-for="Name" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Name" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-position-relative">
+                        <span class="far fa-clone" onclick="tagDuplicate('create')"></span>
+                        <label asp-for="UniqueName" class="uk-form-label"></label>
+                        <input asp-for="UniqueName" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="UniqueName" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Type" class="uk-form-label"></label>
+                        <select asp-for="Type" class="uk-select uk-border-rounded">
+                            <option value="@((byte)TagType.Faq)">مخصوص محصول</option>
+                            <option value="@((byte)TagType.Blog)">مخصوص وبلاگ</option>
+                        </select>
+                        <span asp-validation-for="Type" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit()">ثبت اطلاعات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

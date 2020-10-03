@@ -1,0 +1,41 @@
+﻿@{
+    string color = ViewData["color"].ToString();
+    switch (color)
+    {
+        case "blue":
+            <link href="~/css/admin.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#3f51b5" />
+            <meta name="msapplication-navbutton-color" content="#3f51b5">
+            break;
+        case "red":
+            <link href="~/css/admin.red.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#e53935" />
+            <meta name="msapplication-navbutton-color" content="#e53935">
+            break;
+        case "green":
+            <link href="~/css/admin.green.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#43a047" />
+            <meta name="msapplication-navbutton-color" content="#43a047">
+            break;
+        case "yellow":
+            <link href="~/css/admin.yellow.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#fdd835" />
+            <meta name="msapplication-navbutton-color" content="#fdd835">
+            break;
+        case "purple":
+            <link href="~/css/admin.purple.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#8e24aa" />
+            <meta name="msapplication-navbutton-color" content="#8e24aa">
+            break;
+        case "grey":
+            <link href="~/css/admin.grey.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#546e7a" />
+            <meta name="msapplication-navbutton-color" content="#546e7a">
+            break;
+        default:
+            <link href="~/css/admin.min.css" rel="stylesheet" asp-append-version="true" />
+            <meta name="theme-color" content="#3f51b5" />
+            <meta name="msapplication-navbutton-color" content="#3f51b5">
+            break;
+    }
+}

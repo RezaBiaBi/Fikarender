@@ -1,0 +1,167 @@
+﻿
+@model Tag
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Tag>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+    ViewData["pageId"] = 4;
+    ViewData["Title"] = "تگ ها";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        function tagDuplicate(formName) {
+            preloader();
+            var val = '';
+            if (formName == 'create') {
+                val = $('#create-form #UniqueName').val();
+            }
+            else {
+                val = $('#edit-form #UniqueName').val();
+            }
+            $.post('@Url.Action("TagDuplicate")', { 'value': val }, function (r) {
+                UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 10000 });
+            }, 'json').then(function () {
+                setTimeout(function () {
+                    preloader();
+                }, 200);
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditTag")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                setTimeout(function () {
+                    UIkit.modal('#edit-modal').show();
+                    preloader();
+                }, 200);
+            })
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function filter() {
+            preloader();
+            var data = $('#search-modal form').serialize();
+            $.post('@Url.Action("TagSearch")', data, function (r) {
+                $('#append').html(r);
+            }, 'html').then(function () {
+                UIkit.modal('#search-modal').hide();
+                preloader();
+            });
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>افزودن</a>
+        <a class="uk-button uk-button-secondary uk-margin-small-right" href="#search-modal" uk-toggle>جستجو</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th width="50">ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.UniqueName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Type)</th>
+                    <th width="50">ویرایش</th>
+                    @*<th width="50">حذف</th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    string type;
+                    switch (item.Type)
+                    {
+                        case (byte)TagType.Blog:
+                            type = "مخصوص وبلاگ";
+                            break;
+                        default:
+                            type = "مخصوص سوالات متداول";
+                            break;
+                    }
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.UniqueName)
+                        </td>
+                        <td>@type</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.TagId)"><i class="far fa-edit"></i></a></td>
+                        @*<td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>*@
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Tag", new { pageNumber = page }))
+        </div>
+    }
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteTag" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p>این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="edit-modal" uk-modal></div>
+<partial name="~/Views/Admin/Create/Tag.cshtml" model="Model" view-data="ViewData" />
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی تگ</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label class="uk-form-label">عنوان تگ</label>
+                    <input class="uk-input uk-border-rounded" name="title" />
+                </div>
+                <div class="uk-text-center">
+                    <a asp-action="Tag" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="filter()">جستجو</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,106 @@
+﻿
+@model Blog
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@{
+    ViewData["pageId"] = 3;
+    var data = ViewBag.data as IPagedList<Blog>;
+    int i = 1;
+    int p = data.PageNumber;
+    if (p > 1)
+    {
+        i = (10 * p) - (10 - 1);
+    }
+    ViewData["Title"] = "وبلاگ";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Scripts{
+    <script>
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a asp-action="CreateBlog" asp-controller="Admin" class="uk-button uk-button-primary">افزودن جدید</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.CreateDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                    <th>نویسنده</th>
+                    <th>تگ ها</th>
+                    <th>@Html.DisplayNameFor(model => model.ViewCount)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    var pd = new PersianDateTime(item.CreateDate);
+                    <tr class="uk-text-center">
+                        <td>
+                            @i
+                        </td>
+                        <td class="sm" dir="ltr">
+                            @pd.ToShortDateString() - @pd.ToLongTimeString()
+                        </td>
+                        <td>
+                            @item.Title
+                        </td>
+                        <td>
+                            @*@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname*@
+                        </td>
+                        <td>
+                            @foreach (var tag in item.BlogTags)
+                            {
+                                <a asp-action="BlogTag" asp-controller="Home" asp-route-uniqueName="@tag.Tag.UniqueName" target="_blank" class="uk-badge">@tag.Tag.Name</a>
+                            }
+                        </td>
+                        <td>
+                            @item.ViewCount
+                        </td>
+                        <td><a asp-action="EditBlog" asp-controller="Admin" asp-route-id="@item.BlogId" class="uk-button uk-button-primary uk-button-small"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.BlogId)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Blog", new { pageNumber = page }))
+        </div>
+    }
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteBlog" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+

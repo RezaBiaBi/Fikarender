@@ -1,0 +1,73 @@
+﻿
+@model Tag
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@{
+    int i = 1;
+    var data = ViewBag.data as IPagedList<Tag>;
+    int p = data.PageNumber;
+    if (p > 1)
+    {
+        i = (10 * p) - (10 - 1);
+    }
+    if (data.Any())
+    {
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th width="50">ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Name)</th>
+                        <th>@Html.DisplayNameFor(model => model.UniqueName)</th>
+                        <th>@Html.DisplayNameFor(model => model.Type)</th>
+                        <th width="50">ویرایش</th>
+                        @*<th width="50">حذف</th>*@
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in data)
+                    {
+                        string type;
+                        switch (item.Type)
+                        {
+                            case (byte)TagType.Blog:
+                                type = "مخصوص وبلاگ";
+                                break;
+                            default:
+                                type = "مخصوص سوالات متداول";
+                                break;
+                        }
+
+                        <tr class="uk-text-center">
+                            <td>@i</td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.UniqueName)
+                            </td>
+                            <td>@type</td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.TagId)"><i class="far fa-edit"></i></a></td>
+                            @*<td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>*@
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("TagSearch", new { pageNumber = page, title = ViewBag.title }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+    else
+    {
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>نتیجه ای یافت نشد.</h2>
+                </div>
+            </div>
+        </div>
+    }
+}

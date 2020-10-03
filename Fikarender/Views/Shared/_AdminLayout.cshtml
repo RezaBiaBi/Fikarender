@@ -1,0 +1,170 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="language" content="FA-IR">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>@ViewData["Title"] | دکاموند</title>
+    <link href="~/lib/uikit/css/uikit-rtl.min.css" rel="stylesheet" />
+    @await Component.InvokeAsync("AdminTheme")
+    <link href="~/css/pagedlist.min.css" rel="stylesheet" />
+    <link href="~/fontawesome/css/all.min.css" rel="stylesheet" />
+    @RenderSection("Links", false)
+    <script src="~/lib/uikit/js/uikit.min.js"></script>
+</head>
+<body>
+    <partial name="_Preloader" />
+    <div uk-sticky="animation: uk-animation-slide-top">
+        <nav class="uk-navbar-container uk-light" uk-navbar="mode: click">
+            <div class="uk-navbar-right">
+                <a asp-action="Index" asp-controller="Home" class="uk-navbar-item uk-logo">لوگو</a>
+            </div>
+            <div class="uk-navbar-left">
+
+                <ul class="uk-navbar-nav">
+                    <li id="color-icon">
+                        <a class="uk-position-relative">
+                            <i class="lg fas fa-paint-brush"></i>
+                        </a>
+                        <div uk-dropdown="mode: click;pos: bottom-center;offset: 5;animation: uk-animation-scale-up; duration: 350;toggle: #color-icon">
+                            <ul class="uk-nav uk-dropdown-nav uk-text-right font-xs">
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="blue">آبی<span class="n-badge uk-border-pill blue">نمونه</span></a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="red">قرمز<span class="n-badge uk-border-pill red">نمونه</span></a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="yellow">زرد<span class="n-badge uk-border-pill yellow">نمونه</span></a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="purple">بنفش<span class="n-badge uk-border-pill purple">نمونه</span></a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="green">سبز<span class="n-badge uk-border-pill green">نمونه</span></a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a asp-action="ChangeTheme" asp-controller="Admin" asp-route-color="grey">خاکستری<span class="n-badge uk-border-pill grey">نمونه</span></a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li id="notification-icon">
+                        <a class="uk-position-relative">
+                            <i class="lg fas fa-bell"></i>
+                        </a>
+                        <div uk-dropdown="mode: click;pos: bottom-center;offset: 5;animation: uk-animation-scale-up; duration: 350;toggle: #notification-icon">
+                            <ul class="uk-nav uk-dropdown-nav uk-text-right font-xs">
+                                <li><a asp-action="Contact" asp-controller="Admin">تماس ها<span id="n-contact" class="n-badge uk-border-pill">-</span></a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li id="user-icon" class="uk-margin-left user">
+                        <a class="uk-position-relative">
+                            <span class="uk-position-absolute"></span>
+                            <i class="fas fa-2x fa-user-circle"></i>
+                        </a>
+                        <div class="uk-navbar-dropdown" uk-dropdown="mode: click;pos: bottom-center;offset: 5;animation: uk-animation-scale-up; duration: 350;toggle: #user-icon">
+                            <ul class="uk-nav uk-navbar-dropdown-nav">
+                                <li><a asp-action="Index" asp-controller="Account"><i class="uk-margin-left fas fa-cog"></i>تنظیمات پروفایل</a></li>
+                                <li class="uk-nav-divider"></li>
+                                <li><a onclick="$('#log-out-form').submit()"><i class="uk-margin-left fas fa-sign-out-alt"></i>خروج</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="uk-hidden@m">
+                        <a class="uk-navbar-toggle" uk-navbar-toggle-icon uk-toggle="target: #offcanvas"></a>
+                    </li>
+                </ul>
+
+            </div>
+        </nav>
+    </div>
+    <div id="main-content" class="uk-grid-collapse uk-height-1-1 main" uk-grid>
+        <div id="sidebar-back" class="uk-visible@m"></div>
+        <div id="sidebar" class="sidebar uk-visible@m">
+            <div id="sidebar-inner">
+                <partial name="_AdminSidebarPartial" />
+            </div>
+        </div>
+        <div id="content" class="content uk-width-expand">
+            <h3 class="uk-text-bold">@ViewData["Title"]</h3>
+            @RenderBody()
+        </div>
+    </div>
+    <div id="offcanvas" uk-offcanvas="overlay: true">
+        <div class="uk-offcanvas-bar uk-light">
+            <partial name="_AdminSidebarPartial" />
+        </div>
+    </div>
+    <form id="log-out-form" class="uk-hidden" asp-action="Logout" asp-controller="Account" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"></form>
+    @if (TempData["msg"] != null)
+    {
+        string msg = (string)TempData["msg"];
+        string[] m = msg.Split('|');
+        <script>
+            UIkit.notification({
+                message: '@m[0]',
+                status: '@m[1]',
+                pos: 'bottom-center',
+                timeout: 15000
+            });
+        </script>
+    }
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script defer src="~/lib/uikit/js/uikit-icons.min.js"></script>
+    <script src="~/lib/sticky-sidebar/resize-sensor.min.js"></script>
+    <script src="~/lib/sticky-sidebar/sticky-sidebar.min.js"></script>
+    <script>
+        function preloader() {
+            $('#preloader').fadeToggle();
+        }
+        function parseValidator(t) {
+            $(t).data('validator', null);
+            $.validator.unobtrusive.parse($(t));
+        }
+        function goUp() {
+            $('html, body').animate({
+                scrollTop: 0
+            }, 500);
+        }
+        function getdate() {
+            var today = new Date();
+            var h = today.getHours();
+            var m = today.getMinutes();
+            var s = today.getSeconds();
+            if (s < 10) {
+                s = "0" + s;
+            }
+            if (m < 10) {
+                m = "0" + m;
+            }
+            if (h < 10) {
+                h = "0" + h;
+            }
+            $(".main-clock").text(h + ":" + m + ":" + s);
+            setTimeout(function () { getdate() }, 500);
+        }
+        @*function getNotifications() {
+            $.post('@Url.Action("AdminNotifications", "Admin")', {}, function (r) {
+                var heartbeat = '<span class="uk-position-absolute heartbeat"></span>';
+                if (r.sum > 0) {
+                    $('#notification-icon > a').prepend(heartbeat);
+                }
+                $('#n-contact').text(r.contacts);
+            }, 'json');
+        }*@
+        $(document).ready(function () {
+            var sidebar = new StickySidebar('#sidebar', {
+                containerSelector: '#main-content',
+                innerWrapperSelector: '#sidebar-inner',
+                topSpacing: 60,
+                bottomSpacing: 0
+            });
+            getdate();
+            //getNotifications();
+        });
+    </script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

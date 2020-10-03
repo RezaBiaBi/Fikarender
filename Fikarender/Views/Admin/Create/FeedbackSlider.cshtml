@@ -1,0 +1,51 @@
+﻿@model UsersFeedback
+
+<div id="create-modal" uk-modal="bg-close: false">
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">افزودن اسلاید جدید</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form id="create-form" asp-action="FeedbackSlider" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
+                    <div>
+                        <label asp-for="UserName" class="uk-form-label"></label>
+                        <input asp-for="UserName" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="UserName" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="UserRole" class="uk-form-label"></label>
+                        <input asp-for="UserRole" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="UserRole" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <label asp-for="Description" class="uk-form-label"></label>
+                        <textarea asp-for="Description" class="uk-textarea uk-border-rounded"></textarea>
+                        <span asp-validation-for="Description" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Sort" class="uk-form-label"></label>
+                        <input asp-for="Sort" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="Sort" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-1 uk-text-center">
+                        <div class="uk-margin-top">
+                            <label class="uk-form-label">تصویر</label>
+                            <div uk-form-custom="target: true">
+                                <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                                <input name="image" accept=".jpg,.png,.webp" type="file" data-val="true" data-val-required="یک تصویر انتخاب کنید." id="image" aria-describedby="image-error" aria-invalid="true">
+                                <input class="uk-input uk-form-width-large uk-form-small" type="text" placeholder="انتخاب کنید ..." disabled>
+                            </div>
+                        </div>
+                        <span class="uk-text-danger field-validation-error" data-valmsg-for="image" data-valmsg-replace="true"></span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit()">ثبت اطلاعات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,205 @@
+﻿
+@model IEnumerable<UsersFeedback>
+
+@{
+    ViewData["pageId"] = 16;
+    ViewData["Title"] = "بازخورد کاربران";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var m = new UsersFeedback();
+}
+@section Scripts{
+    <script src="~/js/force-numeric.min.js"></script>
+    <script>
+        function edit(id) {
+            preloader();
+            var form = '#s-' + id;
+            $.post('@Url.Action("EditFeedbackSlide", "Admin", null)', $(form).serialize(), function (r) {
+                UIkit.notification({ message: r.message, status: r.status, pos: 'bottom-center', timeout: 4000 });
+            }, 'json').then(function () {
+                preloader();
+            });
+        }
+        function remove(id) {
+            $('#removeInput').val(id);
+            UIkit.modal('#modal-prompt').show();
+        }
+        function doRemove() {
+            preloader();
+            var id = $('#removeInput').val();
+            $.post('@Url.Action("RemoveFeedbackSlide", "Admin", null)', { 'id': id }, function (r) {
+                UIkit.notification({ message: r.message, status: r.status, pos: 'top-left', timeout: 4000 });
+                if (r.status == 'success') {
+                    UIkit.modal('#modal-prompt').hide();
+                    setTimeout(function () {
+                        $('#b-' + id).slideUp();
+                    }, 500);
+                }
+            }, 'json').then(function () {
+                preloader();
+            });
+        }
+        function editImage(imgName, id) {
+            $('#image-name-input').val(id);
+            $('#e-modal .showcase').attr('src', '/img/slider/' + imgName);
+            UIkit.modal('#e-modal').show();
+        }
+        $(document).ready(function () {
+            $('#img-form').submit(function (event) {
+                //disable the default form submission
+                event.preventDefault();
+                //grab all form data
+                var formData = new FormData($(this)[0]);
+                preloader();
+                $.ajax({
+                    url: '@Url.Action("EditFeedbackSlideImage")',
+                    type: 'POST',
+                    data: formData,
+                    async: true,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (r) {
+                        setTimeout(function () {
+                            preloader();
+                            UIkit.notification({
+                                message: r.message,
+                                status: r.status,
+                                pos: 'bottom-center',
+                                timeout: 6000
+                            });
+                        }, 600);
+                        if (r.status == 'success') {
+                            UIkit.modal('#e-modal').hide();
+                        }
+                    },
+                    error: function () {
+                        setTimeout(function () {
+                            preloader();
+                            UIkit.notification({
+                                message: "خطای server ajax رخ داده است. لطفا فایل را بررسی و در زمانی دیگر دوباره امتحان کنید.",
+                                status: 'danger',
+                                pos: 'bottom-center',
+                                timeout: 6000
+                            });
+                        }, 600);
+                    }
+                });
+            });
+        });
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>افزودن جدید</a>
+    </div>
+</div>
+<div class="uk-grid-small uk-child-width-1-1" uk-grid>
+    @foreach (var item in Model)
+    {
+        <div>
+            <div id="b-@item.Id" class="uk-padding-small box">
+                <div class="uk-grid-small uk-flex uk-flex-middle" uk-grid>
+                    <div class="uk-width-1-1@s uk-width-1-5@m uk-text-center">
+                        <a onclick="editImage('@item.Picture', @item.Id)">
+                            <img src="~/img/slider/@item.Picture" class="showcase" />
+                        </a>
+                    </div>
+                    <div class="uk-width-1-1@s uk-width-4-5@m">
+                        <form id="s-@item.Id" class="uk-form-stacked uk-grid-small" uk-grid>
+                            <input type="hidden" name="Id" value="@item.Id" />
+                            <input type="hidden" name="Picture" value="@item.Picture" />
+                            <div class="uk-width-1-1@s uk-width-1-2@m">
+                                <label class="uk-form-label"> @Html.DisplayNameFor(a => a.UserName)</label>
+                                <div class="uk-form-controls">
+                                    <input class="uk-input uk-border-rounded" type="text" name="UserName" value="@item.UserName" />
+                                </div>
+                            </div>
+                            <div class="uk-width-1-1@s uk-width-1-2@m">
+                                <div class="uk-grid-small" uk-grid>
+                                    <div class="uk-width-1-1@s uk-width-2-3@m">
+                                        <label class="uk-form-label"> @Html.DisplayNameFor(a => a.UserRole)</label>
+                                        <div class="uk-form-controls">
+                                            <input class="uk-input uk-border-rounded" type="text" name="UserRole" value="@item.UserRole" />
+                                        </div>
+                                    </div>
+                                    <div class="uk-width-1-1@s uk-width-1-3@m">
+                                        <label class="uk-form-label"> @Html.DisplayNameFor(a => a.Sort)</label>
+                                        <div class="uk-form-controls">
+                                            <input dir="ltr" class="uk-input uk-border-rounded" type="text" name="Sort" value="@item.Sort" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="uk-width-1-1">
+                                <label class="uk-form-label"> @Html.DisplayNameFor(a => a.Description)</label>
+                                <div class="uk-form-controls">
+                                    <textarea class="uk-textarea uk-border-rounded" name="Description">@item.Description</textarea>
+                                </div>
+                            </div>
+                            <div class="uk-width-1-1 uk-text-center uk-flex uk-flex-center uk-grid-large" uk-grid>
+                                <div>
+                                    <button type="button" class="uk-button uk-button-primary uk-border-rounded uk-button-small" onclick="edit(@item.Id)">ذخیره تغییرات</button>
+                                </div>
+                                <div>
+                                    <button type="button" class="uk-button uk-button-danger uk-border-rounded uk-button-small" onclick="remove(@item.Id)">حذف</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div id="e-modal" uk-modal="bg-close:false">
+    <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title uk-text-center">ویرایش تصویر</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form id="img-form" enctype="multipart/form-data" method="post" action="javascript:;" accept-charset="utf-8">
+                <div class="uk-grid-small" uk-grid>
+                    <div class="uk-width-1-1 uk-text-center">
+                        <img src="" class="showcase" />
+                    </div>
+                    <div class="uk-width-1-1 uk-text-center">
+                        <input id="image-name-input" type="hidden" name="id" value="" />
+                        <div uk-form-custom="target: true">
+                            <input name="image" type="file" accept=".jpg,.png,.webp">
+                            <input class="uk-input uk-form-small uk-form-width-large font-sm" type="text" placeholder="برای انتخاب تصویر اینجا کلیک کنید ..." disabled>
+                        </div>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <div class="uk-alert-primary uk-width-1-1 uk-text-center uk-border-rounded" uk-alert>
+                            <p>لطفا فقط از تصویر با پسوند .jpg, .webp یا .png استفاده کنید.</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary uk-button-small" type="button" onclick="$('#img-form').submit()">آپلود و ذخیره</button>
+            <button class="uk-button uk-button-danger uk-button-small uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="modal-prompt" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <input id="removeInput" type="hidden" name="id" />
+        <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+        <p>این عملیات قابل بازگشت نیست</p>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary uk-button-small" onclick="doRemove()" type="button">بلی</button>
+            <button class="uk-button uk-button-danger uk-button-small uk-modal-close" type="button">خیر</button>
+        </div>
+    </div>
+</div>
+<partial name="~/Views/Admin/Create/FeedbackSlider.cshtml" model="m" />
+

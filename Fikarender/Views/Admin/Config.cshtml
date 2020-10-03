@@ -1,0 +1,243 @@
+﻿
+@model Config
+@{
+    ViewData["pageId"] = 2;
+    ViewData["Title"] = "پیکر بندی سایت";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Scripts {
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script>
+        $('#text-len').on("input", function () {
+            var currentLength = $(this).val().length;
+            $('.uk-text-primary').text(currentLength);
+        });
+        CKEDITOR.replace('ContactContent', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        function submit() {
+            if ($('#create-form').valid() == true) {
+                preloader();
+                var data = $('#create-form').serialize();
+                data += '&ContactContent=' + CKEDITOR.instances['ContactContent'].getData();
+                $.post('@Url.Action("Config")', data, function (r) {
+                    UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 5000 });
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <button class="uk-button uk-button-primary" uk-toggle="#media-modal">محتوای چند رسانه ای</button>
+    </div>
+</div>
+<div class="box">
+    <form id="create-form" method="post">
+        <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <ul class="uk-child-width-expand uk-margin-remove-top" uk-tab>
+            <li class="uk-active"><a href="#">عمومی</a></li>
+            <li><a href="#">ایمیل و پیامک</a></li>
+            <li><a href="#">سئو و محتوای صفحه ها</a></li>
+        </ul>
+        <ul class="uk-switcher uk-margin">
+            <li class="uk-active">
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="Tel" class="uk-form-label"></label>
+                        <input asp-for="Tel" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Tel" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="Domain" class="uk-form-label"></label>
+                        <input asp-for="Domain" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="Domain" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="ContentDeliveryNetwork" class="uk-form-label"></label>
+                        <input asp-for="ContentDeliveryNetwork" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="ContentDeliveryNetwork" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Address" class="uk-form-label"></label>
+                        <textarea asp-for="Address" rows="2" class="uk-textarea uk-border-rounded"></textarea>
+                        <span asp-validation-for="Address" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="FooterText" class="uk-form-label"></label>
+                        <textarea asp-for="FooterText" rows="2" class="uk-textarea uk-border-rounded"></textarea>
+                        <span asp-validation-for="FooterText" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MapUrl" class="uk-form-label"></label>
+                        <input asp-for="MapUrl" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="MapUrl" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Instagram" class="uk-form-label"></label>
+                        <input asp-for="Instagram" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Instagram" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Telegram" class="uk-form-label"></label>
+                        <input asp-for="Telegram" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Telegram" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Facebook" class="uk-form-label"></label>
+                        <input asp-for="Facebook" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Facebook" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Twitter" class="uk-form-label"></label>
+                        <input asp-for="Twitter" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Twitter" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Google" class="uk-form-label"></label>
+                        <input asp-for="Google" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Google" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="Email" class="uk-form-label"></label>
+                        <input asp-for="Email" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Email" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="SmsCenter" class="uk-form-label"></label>
+                        <input asp-for="SmsCenter" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsCenter" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="SmsUser" class="uk-form-label"></label>
+                        <input asp-for="SmsUser" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsUser" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="SmsPass" class="uk-form-label"></label>
+                        <input asp-for="SmsPass" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsPass" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <div class="uk-border-rounded samim" uk-alert>
+                            <p>برای استفاده از آدرس ایمیل جدید آن را در پنل سرور تنظیم کنید و آن را در فیلد <span class="lg">(نام کاربری پنل Email)</span> بدون فاصله و با وارد کردن دو عدد Semicolumn (;;) تایپ و ذخیره نمائید. برای مثال در اینجا دو آدرس وارد شده است:<code>info@parsmvc.ir;;crm@parsmvc.ir</code></p>
+                            <p>تمامی آدرس هایی که در سرور تنظیم می کنید باید کلمه عبور یکسان داشته باشند و با کلمه عبوری که در اینجا وارد می کنید یکسان باشد.</p>
+                        </div>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="MailDisplayName" class="uk-form-label"></label>
+                        <input asp-for="MailDisplayName" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="MailDisplayName" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="MailSmtpDomain" class="uk-form-label"></label>
+                        <input asp-for="MailSmtpDomain" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailSmtpDomain" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MailUserName" class="uk-form-label"></label>
+                        <input asp-for="MailUserName" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailUserName" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MailPassword" class="uk-form-label"></label>
+                        <input asp-for="MailPassword" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailPassword" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div>
+                        <div class="uk-border-rounded" uk-alert>
+                            <p>طبق اصول سئو باید موارد زیر رعایت شوند:</p>
+                            <ul class="uk-list uk-list-bullet sm">
+                                <li>طول عنوان صفحه بهتر است بین 40 الی 70 کاراکتر باشد.</li>
+                                <li>طول توضیحات متای هر صفحه بهتر است بین 120 الی 160 کاراکتر باشد.</li>
+                                <li>در نظر داشته باشید هر گونه تغییر در موارد زیر توسط موتور های جستجو رصد خواهد شد و تاثیر مستقیم در نمره سئو سایت دارد.</li>
+                                <li>در زیر می توانید متن خود را تایپ کنید و طول آن را مشاهده نمائید:</li>
+                            </ul>
+                            <input id="text-len" class="uk-input uk-border-rounded" />
+                            <span class="sm uk-text-primary uk-display-block">0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label asp-for="HomeTitle" class="uk-form-label"></label>
+                        <input asp-for="HomeTitle" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="HomeTitle" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="HomeMetaDesc" class="uk-form-label"></label>
+                        <input asp-for="HomeMetaDesc" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="HomeMetaDesc" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="ContactTitle" class="uk-form-label"></label>
+                        <input asp-for="ContactTitle" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="ContactTitle" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="ContactMetaDesc" class="uk-form-label"></label>
+                        <input asp-for="ContactMetaDesc" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="ContactMetaDesc" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="ContactContent" class="uk-form-label"></label>
+                        <textarea id="ContactContent">@Model.ContactContent</textarea>
+                        <span asp-validation-for="ContactContent" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </form>
+    <div class="uk-text-center uk-margin-medium-top">
+        <button class="uk-button uk-button-primary" type="button" onclick="submit()">ثبت اطلاعات</button>
+    </div>
+</div>
+<div id="media-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">محتوای چند رسانه ای</h2>
+        </div>
+        <div class="uk-modal-body" style="background: #fff">
+            <div class="uk-grid-small" uk-grid>
+                <div>
+                    <div class="box">
+                        <div class="uk-grid-small uk-child-width-1-1 uk-grid-divider" uk-grid>
+                            <form asp-action="UploadMultimedia" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="type" value="logo" />
+                                <label class="uk-form-label">لوگوی سایت (Maximum width: 400px)</label>
+                                <div class="uk-width-1-1 uk-margin-top uk-text-center">
+                                    <img src="~/img/logo.png" width="100" />
+                                </div>
+                                <div class="uk-margin" uk-margin>
+                                    <div uk-form-custom="target: true">
+                                        <input name="file" type="file" accept=".png">
+                                        <input class="uk-input uk-border-rounded uk-form-small uk-form-width-medium" type="text" placeholder="انتخاب کنید..." disabled>
+                                    </div>
+                                    <button class="uk-button uk-button-secondary uk-button-small">آپلود</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

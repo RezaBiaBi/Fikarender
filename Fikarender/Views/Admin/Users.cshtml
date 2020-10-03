@@ -1,0 +1,77 @@
+﻿
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 7;
+    ViewData["Title"] = "مدیریت کاربران";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var data = ViewBag.data as IPagedList<ApplicationUser>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left"></div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>تلفن همراه</th>
+                    <th>تاریخ تولد</th>
+                    <th>تاریخ عضویت</th>
+                    <th width="50">ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    string birth = "---";
+                    if (item.Birth.HasValue)
+                    {
+                        birth = new PersianDateTime(item.Birth).ToShortDateString();
+                    }
+                    string register = new PersianDateTime(item.RegisterDate).ToShortDateString();
+
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Firstname @item.Lastname</td>
+                        @if (item.PhoneNumberConfirmed)
+                        {
+                            <td class="uk-text-success" title="تایید شده">@item.PhoneNumber</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger" title="تایید نشده">@item.PhoneNumber</td>
+                        }
+                        <td>@birth</td>
+                        <td>@register</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditUser" asp-route-id="@item.Id"><i class="far fa-edit"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Users", new { p = page }))
+        </div>
+    }
+</div>
+
