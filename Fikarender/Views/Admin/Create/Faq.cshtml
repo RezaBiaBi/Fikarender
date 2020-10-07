@@ -1,0 +1,37 @@
+﻿
+@model Faq
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن سوال جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="CreateFaq" asp-controller="Admin" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div class="uk-position-relative">
+                    <label asp-for="Question" class="uk-form-label"></label>
+                    <textarea asp-for="Question" class="uk-input uk-border-rounded" style="min-height: 400px"></textarea>
+                    <span asp-validation-for="Question" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-position-relative">
+                    <label asp-for="Answer" class="uk-form-label"></label>
+                    <textarea asp-for="Answer" class="uk-input uk-border-rounded" style="min-height: 400px"></textarea>
+                    <span asp-validation-for="Answer" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <hr />
+                </div>
+                <div class="uk-position-relative">
+                    <label asp-for="Sort" class="uk-form-label"></label>
+                    <input asp-for="Sort" type="text" class="uk-input uk-border-rounded"/>
+                    <span asp-validation-for="Sort" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="$('#edit-form').submit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

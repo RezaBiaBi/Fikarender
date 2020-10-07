@@ -4,7 +4,8 @@
     {
         Blog,
         Service,
-        Faq
+        Faq,
+        WorkSample
     }
     
     public enum TagType
@@ -12,6 +13,13 @@
         Blog,
         Faq,
         /*Service*/
+    }
+
+    public enum WorkSampleType
+    {
+        Video,
+        Picture,
+        File
     }
 
     public enum OrderStatus

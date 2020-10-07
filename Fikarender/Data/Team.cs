@@ -36,6 +36,7 @@ namespace Fikarender.Data
         [StringLength(200, MinimumLength = 8, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string Degree { get; set; }
 
+        [Display(Name = "عکس")]
         [StringLength(50)]
         public string Avatar { get; set; }
 

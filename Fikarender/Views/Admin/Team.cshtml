@@ -1,0 +1,131 @@
+﻿@model Team
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@{
+    ViewData["pageId"] = 24;
+    ViewData["Title"] = "اعضای تیم فیکا";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var data = ViewBag.data as IPagedList<Team>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditTeam")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                setTimeout(function () {
+                    UIkit.modal('#edit-modal').show();
+                    preloader();
+                }, 200);
+            })
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgTeam').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+        }
+
+        $("#avatarImage").change(function () {
+            readURL(this);
+        });
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>افزودن</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th width="50">ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.FullName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Avatar)</th>
+                    <th>@Html.DisplayNameFor(model => model.Degree)</th>
+                    <th>@Html.DisplayNameFor(model => model.Email)</th>
+                    <th>@Html.DisplayNameFor(model => model.PhoneNumber)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.FullName)
+                        </td>
+                        <td>
+                            <img src="~/img/team/@item.Avatar" width="60"/>
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Degree)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Email)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.PhoneNumber)
+                        </td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.TeamId)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.TeamId)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Team", new { pageNumber = page }))
+        </div>
+    }
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteTeam" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p>این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="edit-modal" uk-modal></div>
+<div id="create-modal" uk-modal>
+    @{ Team model = new Team(); }
+    <partial name="~/Views/Admin/Create/Team.cshtml" model="model" view-data="ViewData" />
+</div>
+

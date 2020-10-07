@@ -1,0 +1,401 @@
+﻿
+@model WorkSample
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 23;
+    ViewData["Title"] = "نمونه کارها";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var data = ViewBag.data as IPagedList<WorkSample>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+}
+@section Scripts{
+    <script>
+        var bar = document.getElementById('js-progressbar');
+
+        UIkit.upload('.js-upload', {
+
+            url: '/admin/worksample',
+            multiple: true,
+            name: 'images',
+            concurrent: 10,
+
+            beforeSend: function () {
+                console.log('beforeSend', arguments);
+            },
+            beforeAll: function () {
+                console.log('beforeAll', arguments);
+            },
+            load: function () {
+                console.log('load', arguments);
+            },
+            error: function () {
+                console.log('error', arguments);
+            },
+            complete: function () {
+                console.log('complete', arguments);
+            },
+
+            loadStart: function (e) {
+                console.log('loadStart', arguments);
+
+                bar.removeAttribute('hidden');
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+
+            progress: function (e) {
+                console.log('progress', arguments);
+
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+
+            loadEnd: function (e) {
+                console.log('loadEnd', arguments);
+
+                bar.max = e.total;
+                bar.value = e.loaded;
+            },
+
+            completeAll: function () {
+                console.log('completeAll', arguments);
+
+                setTimeout(function () {
+                    bar.setAttribute('hidden', 'hidden');
+                }, 2000);
+                window.location.reload(true);
+            }
+
+        });
+        function remove(id, sampleType) {
+            @*$('#delete-modal input')[0].val(id);
+            $('#delete-modal input')[1].val(sampleType);*@
+            @*#delete-form*@
+            $('#delete-modal #id').val(id);
+            @*$('#delete-modal #sampleType').val(sampleType);*@
+            UIkit.modal('#delete-modal').show();
+        }
+        function submitRemove() {
+            $('#preloader').fadeIn();
+            var id = $('#delete-form input').val();
+            $.post('/admin/delete-uploaded-file', { 'id': id }, function (r) {
+                UIkit.modal('#delete-modal').hide();
+                if (r.status == 'success') {
+                    $('#pic-' + id).fadeOut(150);
+                }
+                UIkit.notification({
+                    message: r.msg,
+                    status: r.status,
+                    pos: 'bottom-center',
+                    timeout: 5000
+                });
+            }, 'json').then(function () {
+                $('#preloader').fadeOut();
+            });
+        }
+        function url(url) {
+            $('#url-modal input').val(url);
+            UIkit.modal('#url-modal').show();
+        }
+        function copy() {
+            var itemCopy = $('#url-modal input').select();
+            document.execCommand("copy");
+            UIkit.notification({
+                message: 'کپی شد.',
+                status: 'primary',
+                pos: 'top-center',
+                timeout: 1000
+            });
+        }
+        $('.box.uk-position-relative').hover(function () {
+            $(this).find('.delete').fadeIn(150);
+            $(this).find('.url').fadeIn(150);
+        }, function () {
+            $(this).find('.delete').fadeOut(150);
+            $(this).find('.url').fadeOut(150);
+        });
+
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        @*$('#btn-Upload').data("sampleId");*@
+    </script>
+}
+<style>
+    .box .delete {
+        position: absolute;
+        padding: 4px;
+        color: #fff;
+        background: #f00;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+        display: none;
+    }
+
+    .box .url {
+        position: absolute;
+        padding: 4px;
+        color: #fff;
+        background: #0f0;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        top: 5px;
+        left: 5px;
+        cursor: pointer;
+        display: none;
+    }
+</style>
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary uk-margin-left" href="#create-modal" id="btn-Upload" uk-toggle>آپلود</a>
+        <a class="uk-button uk-button-primary" asp-action="CreateWorkSample" asp-controller="Admin">افزودن</a>
+    </div>
+</div>
+@*<div class="uk-grid-medium uk-child-width-1-2@s uk-child-width-1-4@m" uk-grid="masonry: true">
+        @foreach (var item in data)
+        {
+            <div id="pic-@item.WorkSampleId">
+                <div class="box uk-position-relative" uk-lightbox>
+                    <span class="url" uk-icon="link" onclick="url('/img/workSample/@item.Picture')" uk-tooltip="title: آدرس تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    <span class="delete" uk-icon="close" onclick="remove(@item.WorkSampleId,@item.SampleType)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
+                    {
+                        <a href="/img/workSample/@item.Picture">
+                            <img src="~/img/workSample/@item.Picture" />
+                        </a>
+                    }
+                    else if (item.SampleType.Equals((byte)WorkSampleType.Video))
+                    {
+                        //TODO Set Video source
+                        <video controls poster="/img/workSample/poster/poster.png">
+                            <source src="~/img/workSample/@item.VideoFile" />
+                        </video>
+                    }
+                    else
+                    {
+                        //WorkSampleType is File
+                        //TODO Download/Upload File without admin
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <div class="uk-text-center uk-width-1-1 uk-margin-top box" dir="ltr">
+        @Html.PagedListPager(data, page => Url.Action("WorkSample", new { pageNumber = page }))
+    </div>*@
+
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th width="50">ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                    <th>@Html.DisplayNameFor(model => model.Service.ServiceTitle)</th>
+                    <th>@Html.DisplayNameFor(model => model.SampleType)</th>
+                    <th>@Html.DisplayNameFor(model => model.Status)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsShow)</th>
+                    <th width="50">
+                        گالری
+                        @* @((Model.SampleType.Equals((byte) WorkSampleType.Picture) ? "تصویر" : "گالری"))*@
+                    </th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Title)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Service.ServiceTitle)
+                        </td>
+                        <td>
+                            @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
+                            {<p class="uk-text-center uk-text-primary">تصویر</p>}
+                            else if (item.SampleType.Equals((byte)WorkSampleType.Video))
+                            {<p class="uk-text-center uk-text-primary">ویدئو</p>}
+                            else
+                            {<p class="uk-text-center uk-text-primary">فایل</p>}
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                        <td>
+                            @if (item.IsShow)
+                            {<p class="uk-text-center uk-text-success"><span class="uk-badge"><i class="" uk-icon="check"></i></span></p>}
+                            else
+                            {<p class="uk-text-center uk-text-danger"><span class="uk-badge"><i class="" uk-icon="close"></i></span></p>}
+                        </td>
+                        <td>
+                            @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
+                            {<!img src="~/img/workSample/pic-"@item.DocumentFile width="70" />}
+                            else
+                            {
+                                <a class="uk-button uk-button-primary uk-button-small" asp-action="ShowWorkSampleVideo" asp-route-id="@item.WorkSampleId"><i class="fas fa-video"></i></a>
+                            }
+                        </td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditWorkSample" asp-route-id="@item.WorkSampleId"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.WorkSampleId)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top box" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("WorkSample", new { pageNumber = page }))
+        </div>
+    }
+</div>
+@*@if (data.Any(a => (a.ServiceId != 0 || a.ServiceId != null) && a.DocumentFile != null))
+    {
+
+    }*@
+<div id="create-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">آپلود تصویر جدید</h2>
+        </div>
+        <div class="uk-modal-body">
+            <div class="js-upload uk-placeholder uk-text-center uk-margin-remove" style="line-height: 30px;">
+                <span class="uk-margin-small-left" uk-icon="icon: cloud-upload"></span>
+                <span class="uk-text-middle">تصاویر را بکشید و در اینجا رها کنید یا </span>
+                <div uk-form-custom>
+                    <input type="file" name="images" accept=".jpg,.png,.gif,.webp" autocomplete="off" multiple>
+                    <span class="uk-link">انتخاب کنید.</span>
+                </div>
+            </div>
+
+            <progress id="js-progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteWorkSample" asp-controller="Admin">
+            <input id="id" type="hidden" name="id" />
+            @*<input id="sampleType" type="hidden" name="sampleType" />*@
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@*<div class="box">
+        <h3 class="uk-text-center">تصویر اصلی</h3>
+        <div class="uk-grid-medium" uk-grid>
+            @if (!string.IsNullOrWhiteSpace(productDetail.Picture))
+            {
+                <input type="hidden" id="prdId" name="prdId" value="@productDetail.Id" />
+                <div id="box" class="uk-width-1-1 uk-flex uk-flex-center uk-position-relative" uk-lightbox>
+                    <span class="delete" style="right:40%" uk-icon="close" onclick="remove(0, @productDetail.Id, 0)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    <a href="/img/product/@productDetail.Id/@productDetail.Picture" data-caption="تصویر اصلی محصول (@productDetail.Title)">
+                        <img width="140" class="uk-border-rounded" src="/img/product/@productDetail.Id/md-@productDetail.Picture" alt="تصویری وجود ندارد" />
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="uk-width-1-1@s uk-width-1-2@m">
+                    <div class="uk-placeholder uk-margin-remove">
+                        <form asp-action="uploadPrdImg" id="uploadPrdImg" method="post" enctype="multipart/form-data" class="uk-grid-collapse" uk-grid>
+                            <input type="hidden" id="prdId" name="prdId" value="@productDetail.Id" />
+                            <div class="uk-width-expand">
+                                <div uk-form-custom="target: true">
+                                    <input id="prdImg" name="prdImg" type="file" accept=".jpg,.png" autocomplete="off">
+                                    <input class="uk-input uk-form-small uk-form-width-large font-sm seoge" type="text" placeholder="برای انتخاب تصویر اصلی محصول اینجا کلیک کنید ..." disabled>
+                                </div>
+                            </div>
+                            <div class="uk-width-auto">
+                                <button type="button" onclick="uploadPic()" class="uk-button uk-button-primary uk-form-small" style="border-radius:0">انجام آپلود</button>
+                            </div>
+                            <div class="uk-width-1-1">
+                                <p class="uk-margin-top sm">سایز مناسب برای این تصویر (Width: 1200px, Height: 1200px)</p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="uk-width-1-1@s uk-width-1-2@m uk-flex uk-flex-center">
+                    <div uk-alert>
+                        <h3>توجه</h3>
+                        <p>تاکنون تصویری به عنوان تصویر اصلی محصول آپلود نشده است.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="box uk-margin-top uk-margin-bottom"><h3 class="uk-margin-remove uk-text-center">گالری تصاویر @productDetail.Title</h3></div>
+    <div class="uk-width-1-1 uk-margin-bottom">
+        <div class="box">
+            <div class="js-upload uk-placeholder uk-text-center uk-margin-remove" style="line-height: 30px;">
+                <span class="uk-margin-small-left" uk-icon="icon: cloud-upload"></span>
+                <span class="uk-text-middle">تصاویر محصول را بکشید و در اینجا رها کنید یا </span>
+                <div uk-form-custom>
+                    <input type="file" name="images" accept=".jpg,.png" autocomplete="off" multiple>
+                    <span class="uk-link">انتخاب کنید.</span>
+                </div>
+            </div>
+
+            <progress id="js-progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+        </div>
+    </div>
+    <div class="uk-grid-medium uk-child-width-1-2 uk-child-width-1-4@m" uk-grid="masonry: true" uk-lightbox="animation: scale">
+        @foreach (var item in Model)
+        {
+            <div id="pic-@item.Id">
+                <div class="box uk-position-relative">
+                    <span class="delete" uk-icon="close" onclick="remove(1, @item.ProductId, @item.Id)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    <a href="/img/gallery/@item.ProductId/@item.ImageName">
+                        <img src="~/img/gallery/@item.ProductId/@item.ImageName" />
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+    <div id="delete-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="delete-form" method="post" asp-action="RemoveProductPicture" asp-controller="Admin">
+                <input id="pic-id" type="hidden" name="picId" />
+                <input id="pic-type" type="hidden" name="type" />
+                <input id="pic-prd" type="hidden" name="productId" />
+                <h3>آیا از حذف این تصویر اطمینان دارید؟</h3>
+                <p>این عملیات قابل بازگشت نیست</p>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="submitRemove()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
+        </div>
+    </div>*@

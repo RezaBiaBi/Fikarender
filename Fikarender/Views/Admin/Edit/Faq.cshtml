@@ -1,0 +1,32 @@
+﻿
+@model Faq
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش سوال جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="EditFaq" asp-controller="Admin" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Question" class="uk-form-label"></label>
+                    <textarea asp-for="Question" class="uk-input uk-border-rounded"></textarea>
+                    <span asp-validation-for="Question" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <hr />
+                </div>
+                <div>
+                    <label asp-for="Answer" class="uk-form-label"></label>
+                    <textarea asp-for="Answer" class="uk-input uk-border-rounded"></textarea>
+                    <span asp-validation-for="Answer" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

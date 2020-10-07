@@ -1,0 +1,180 @@
+﻿
+@model Service
+@{
+    ViewData["pageId"] = 22;
+    ViewData["Title"] = "ویرایش خدمات";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    List<Service> services = (List<Service>)ViewData["serviceId"];
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts {
+    <script src="~/lib/select2/select2.full.min.js"></script>
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('Content', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        CKEDITOR.replace('ServiceMetaDesc', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        $(document).ready(function () {
+            $('#ParentId').select2({ width: '100%' });
+        });
+        function submit() {
+            if ($('#edit-form').valid() == true) {
+                $('#edit-form').submit();
+            }
+            @*if ($('#ParentId').val() >= 0) {
+                if ($('#edit-form').valid() == true) {
+                    $('#edit-form').submit();
+                }
+            } else {
+                UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
+            }*@
+        }
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgService').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+        }
+
+        $("#servicePicture").change(function () {
+            readURL(this);
+        });
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Service" asp-controller="Admin">خدمات</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-secondary" asp-action="Service">
+            <span>بازگشت</span><i class="uk-margin-right fa fa-arrow-left"></i>
+        </a>
+    </div>
+</div>
+<form id="edit-form" asp-action="EditService" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+    <input type="hidden" asp-for="ServiceId" />
+    <input type="hidden" asp-for="ServicePicture" />
+    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
+                    <div class="uk-width-1-1">
+                        <span class="fa fa-phone"></span>
+                        <label asp-for="ParentId" class="uk-form-label">سرویس والد</label>
+                        <select asp-for="ParentId" class="uk-select uk-border-rounded">
+                            <option value="0" selected="selected">لطفا یک والد برای سرویس انتخاب کنید...</option>
+                            @if (services.Select(s => s.ParentId).Any())
+                            {
+                                @foreach (var service in services.Where(s => !s.ServiceId.Equals(Model.ServiceId)))
+                                {
+                                    <!option value="@service.ServiceId" @if (Model.ParentId.Equals(service.ServiceId)) { <text> selected="selected" </text> }>
+                                        @service.ServiceTitle
+                                    </!option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="ParentId" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@s">
+                        <div class="uk-position-relative">
+                            <span class="fa fa-phone"></span>
+                            <label asp-for="ServiceTitle" class="uk-form-label"></label>
+                            <input asp-for="ServiceTitle" class="uk-input uk-border-rounded" placeholder="عنوان سرویس" />
+                            <span asp-validation-for="ServiceTitle" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="uk-width-1-2@s">
+                        <div class="uk-position-relative">
+                            <span class="fa fa-phone"></span>
+                            <label asp-for="ServiceMetaTitle" class="uk-form-label"></label>
+                            <input asp-for="ServiceMetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان سرویس در سئو" />
+                            <span asp-validation-for="ServiceMetaTitle" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="Content" class="uk-form-label"></label>
+                        <textarea asp-for="Content" class="uk-input uk-border-rounded" style="min-height: 400px"></textarea>
+                        <span asp-validation-for="Content" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="ServiceMetaDesc" class="uk-form-label"></label>
+                        <textarea asp-for="ServiceMetaDesc" class="uk-input uk-border-rounded" style="min-height: 200px"></textarea>
+                        <span asp-validation-for="ServiceMetaDesc" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-alert-danger" uk-alert>
+                        <h3>تـوجه</h3><span><i class="fa fa-warning"></i></span>
+                        <p>اگر میخواهید تصویر سرویس را ویرایش کنید از بخش زیر انتخاب کنید. در غیر اینصورت فیلد پایین را خالی ارسال کنید.</p>
+                    </div>
+                </div>
+                <div class="uk-grid-small uk-child-width-1-2" uk-grid>
+                    <div class="uk-width-1-1 uk-text-center">
+                        @if (string.IsNullOrEmpty(Model.ServicePicture))
+                        {
+                            <span>برای سرویس تصویری آپلود نشده است.</span>
+                        }
+                        else
+                        {
+                            <div class="uk-grid-medium" uk-grid>
+                                <div class="uk-width-auto"> <span><i class="fa fa-image"></i></span> تصویر فعلی </div>
+                                <div class="uk-width-expand uk-text-center">
+                                    <img id="imgService" width="120" class="uk-border-rounded uk-box-shadow-medium" src="~/img/service/@Model.ServicePicture" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="uk-width-1-1 uk-text-center">
+                        <div>
+                            <label class="uk-form-label">تصویر پرسنلی (اندازه مناسب w: 500px * h: 500px)</label>
+                        </div>
+                        <div uk-form-custom="target: true">
+                            <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                            <input id="servicePicture" name="servicePicture" accept=".png,.jpg" type="file" aria-invalid="true">
+                            <input class="uk-input uk-form-width-large uk-border-rounded" type="text" placeholder="انتخاب کنید ..." disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="uk-text-center uk-margin-medium-top">
+    <button class="uk-button uk-button-primary" type="button" onclick="submit()">
+        <span>ویرایش سرویس</span><i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+    </button>
+</div>
+

@@ -1,0 +1,235 @@
+﻿
+@model WorkSample
+@{
+    ViewData["pageId"] = 23;
+    ViewData["Title"] = "ویرایش نمونه‌کار";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    List<Service> services = (List<Service>)ViewData["WorkSampleServiceId"];
+    int currenrService = (int)ViewData["currentService"];
+    byte currentType = (byte)ViewData["currentType"];
+    string oldDocument = (string)ViewData["oldDocument"];
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts {
+    <script src="~/lib/select2/select2.full.min.js"></script>
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('LongContent', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        CKEDITOR.replace('Description', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        $(document).ready(function () {
+            $('#ServiceId').select2({ width: '100%' });
+        });
+        $(document).ready(function () {
+            $('#sampType').select2({ width: '100%' });
+        });
+        function submit() {
+            if ($('#edit-form').valid() == true) {
+                $('#edit-form').submit();
+            }
+            @*if ($('#ParentId').val() >= 0) {
+                if ($('#edit-form').valid() == true) {
+                    $('#edit-form').submit();
+                }
+            } else {
+                UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
+            }*@
+        }
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgSample').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]); // convert to base64 string
+            }
+        }
+
+        $("#sampleFile").change(function () {
+            readURL(this);
+        });
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="WorkSample" asp-controller="Admin">نمونه‌کار</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-secondary" asp-action="WorkSample">
+            <span>بازگشت</span><i class="uk-margin-right fa fa-arrow-left"></i>
+        </a>
+    </div>
+</div>
+<form id="edit-form" asp-action="EditWorkSample" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+    <input type="hidden" asp-for="WorkSampleId" />
+    <input type="hidden" asp-for="DocumentFile" />
+    @*<input type="hidden" name="oldDocument" value="@oldDocument" />
+    <input type="hidden" name="currentType" value="@currentType" />*@
+    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
+                    <div class="uk-width-1-2@s">
+                        <span class="fa fa-phone"></span>
+                        <label asp-for="ServiceId" class="uk-form-label">سرویس نمونه‌کار</label>
+                        <select asp-for="ServiceId" class="uk-select uk-border-rounded">
+                            <option value="0" selected="selected">لطفا یک سرویس برای نمونه‌کارتان انتخاب کنید...</option>
+                            @foreach (var service in services)
+                            {
+                                <!option value="@service.ServiceId" @if (Model.ServiceId.Equals(service.ServiceId)) { <text> selected="selected" </text> }>
+                                    @service.ServiceTitle
+                                </!option>
+                            }
+                        </select>
+                        <span asp-validation-for="ServiceId" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@s">
+                        <span class="fa fa-file"></span>
+                        <label asp-for="SampleType" class="uk-form-label"></label>
+                        <select name="sampType" class="uk-select uk-border-rounded">
+                            <option value="-1" selected="selected">لطفا نوع فایل ارسالی را انتخاب کنید...</option>
+                            <!option value="0" @if (Model.SampleType.Equals(0)) { <text> selected="selected" </text> }>ویدئو</!option>
+                            <!option value="1" @if (Model.SampleType.Equals(1)) { <text> selected="selected" </text> }>عکس</!option>
+                            <!option value="2" @if (Model.SampleType.Equals(2)) { <text> selected="selected" </text> }>فایل</!option>
+                        </select>
+                        <span asp-validation-for="SampleType" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@s">
+                        <div class="uk-position-relative">
+                            <span class="fa fa-phone"></span>
+                            <label asp-for="Title" class="uk-form-label"></label>
+                            <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار" />
+                            <span asp-validation-for="Title" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="uk-width-1-2@s">
+                        <div class="uk-position-relative">
+                            <span class="fa fa-phone"></span>
+                            <label asp-for="MetaTitle" class="uk-form-label"></label>
+                            <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار در سئو" />
+                            <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><hr />
+        <div>
+            <div class="box">
+                <div class="uk-width-1-2@s">
+                    <div class="uk-position-relative">
+                        <span class="fa fa-phone"></span>
+                        <label asp-for="Status" class="uk-form-label"></label>
+                        <select name="status" class="uk-select uk-border-rounded">
+                            <option value="-1" selected="selected">وضعیت نمونه‌کار ...</option>
+                            <!option value="0" @if (Model.Status.Equals(0)) { <text> selected="selected" </text> }>وضعیت1</!option>
+                            <!option value="1" @if (Model.Status.Equals(1)) { <text> selected="selected" </text> }>وضعیت2</!option>
+                            <!option value="2" @if (Model.Status.Equals(2)) { <text> selected="selected" </text> }>وضعیت3</!option>
+                        </select>
+                        @*<input asp-for="Status" class="uk-input uk-border-rounded" placeholder="وضعیت نمونه‌کار" />*@
+                        <span asp-validation-for="Status" class="uk-text-danger"></span>
+                    </div>
+                </div>
+                <div class="uk-width-1-2@s">
+                    <div class="uk-position-relative">
+                        <span class="fa fa-phone"></span>
+                        <label asp-for="IsShow" class="uk-form-label"></label>
+                        <input asp-for="IsShow" type="checkbox" class="uk-checkbox" placeholder="وضعیت نمونه‌کار" />
+                        <span asp-validation-for="IsShow" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="LongContent" class="uk-form-label"></label>
+                        <textarea asp-for="LongContent" class="uk-input uk-border-rounded" style="min-height: 600px"></textarea>
+                        <span asp-validation-for="LongContent" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div><hr />
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="Description" class="uk-form-label"></label>
+                        <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 200px"></textarea>
+                        <span asp-validation-for="Description" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div><hr />
+        <div>
+            <div class="box">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="uk-alert-danger" uk-alert>
+                        <h3>تـوجه</h3><span><i class="fa fa-warning"></i></span>
+                        <p>اگر میخواهید تصویر سرویس را ویرایش کنید از بخش زیر انتخاب کنید. در غیر اینصورت فیلد پایین را خالی ارسال کنید.</p>
+                    </div>
+                </div>
+                <div class="uk-grid-small uk-child-width-1-2" uk-grid>
+                    <div class="uk-width-1-1 uk-text-center">
+                        @if (string.IsNullOrEmpty(Model.DocumentFile))
+                        {
+                            <span>برای سرویس فایلی آپلود نشده است.</span>
+                        }
+                        else
+                        {
+                            @if (Model.SampleType.Equals((byte)WorkSampleType.Picture))
+                            {
+                                <div class="uk-grid-medium" uk-grid>
+                                    <div class="uk-width-auto"> <span><i class="fa fa-image"></i></span> تصویر فعلی </div>
+                                    <div class="uk-width-expand uk-text-center">
+                                        <a href="/img/workSample/@Model.DocumentFile">
+                                            <img id="imgSample" width="300" height="300" class="uk-border-rounded uk-box-shadow-medium" src="~/img/workSample/@Model.DocumentFile" />
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.SampleType.Equals((byte)WorkSampleType.Video))
+                            {
+                                //TODO Set Video source
+                                <video controls poster="/video/workSample/poster/poster.png">
+                                    <source src="~/video/workSample/@Model.DocumentFile" />
+                                </video>
+                            }
+                            else
+                            {
+                                //WorkSampleType is File
+                                //TODO Download/Upload File without admin
+                            }
+                        }
+                    </div>
+                    <div class="uk-width-1-1 uk-text-center">
+                        <div>
+                            <label class="uk-form-label">تصویر پرسنلی (اندازه مناسب w: 500px * h: 500px)</label>
+                        </div>
+                        <div uk-form-custom="target: true">
+                            <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                            <input id="sampleFile" name="sampleFile" accept=".png,.jpg" type="file" aria-invalid="true">
+                            <input class="uk-input uk-form-width-large uk-border-rounded" type="text" placeholder="انتخاب کنید ..." disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="uk-text-center uk-margin-medium-top">
+    <button class="uk-button uk-button-primary" type="button" onclick="submit()">
+        <span>ویرایش سرویس</span><i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+    </button>
+</div>

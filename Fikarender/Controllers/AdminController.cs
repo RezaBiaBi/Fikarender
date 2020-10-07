@@ -98,10 +98,11 @@ namespace Fikarender.Controllers
             {
                 theme.Theme = color;
                 db.Update(theme);
+                await db.SaveChangesAsync();
             }
             else
             {
-                db.Add(new AdminTheme
+                await db.AddAsync(new AdminTheme
                 {
                     Theme = color,
                     UserId = userId
@@ -138,7 +139,7 @@ namespace Fikarender.Controllers
             };
             try
             {
-                using (var stream = new FileStream(path, FileMode.Create))
+                await using (var stream = new FileStream(path, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -311,7 +312,7 @@ namespace Fikarender.Controllers
         [HttpGet]
         public IActionResult CreateTeam()
         {
-            return View("~/Views/Admin/Create/Team.cshtml");
+            return PartialView("~/Views/Admin/Create/Team.cshtml");
         }
 
         [HttpPost]
@@ -350,6 +351,7 @@ namespace Fikarender.Controllers
 
                             #endregion
 
+                            team.Avatar = fileName;
                             await db.Team.AddAsync(team);
                             try
                             {
@@ -380,7 +382,7 @@ namespace Fikarender.Controllers
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
-            return RedirectToAction("CreateTeam");
+            return RedirectToAction("Team");
         }
 
         [HttpGet]
@@ -388,9 +390,9 @@ namespace Fikarender.Controllers
         {
             if (!id.HasValue) return NotFound();
 
-            var service = await db.Services.FindAsync(id.Value);
+            var team = await db.Team.FindAsync(id.Value);
 
-            return PartialView("~/Views/Admin/Edit/Team.cshtml", service);
+            return PartialView("~/Views/Admin/Edit/Team.cshtml", team);
         }
 
         [HttpPost]
@@ -521,8 +523,17 @@ namespace Fikarender.Controllers
         #region Services
 
         [HttpGet]
-        public async Task<IActionResult> Service(int? pageNumber)
+        public async Task<IActionResult> ServiceSamples(int serviceId)//TODO Handle this sections
         {
+            var workSamples = await db.WorkSamples.Where(w => w.ServiceId.Equals(serviceId)).ToListAsync();
+            return RedirectToAction("Assist", new { workSamples = workSamples });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Service(int? pageNumber, int? serviceId /*List<WorkSample>? workSamples*/)
+        {
+            ViewData["serviceWorkSamples"] = await db.WorkSamples.Where(a=>a.ServiceId.Equals(serviceId)).ToListAsync();//TODO Design this section (front)
+            /*ViewData["workSamples"] = workSamples;*/
             var services = db.Services;
             var pageNum = pageNumber ?? 1;
             var onePageOfData = await services.ToPagedListAsync(pageNum, 10);
@@ -532,14 +543,17 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateService()//TODO Handle this sections
+        public async Task<IActionResult> CreateService()
         {
+            ViewData["serviceId"] = await db.Services.ToListAsync();
             return View("~/Views/Admin/Create/Service.cshtml");
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateService(Service service, IFormFile servicePicture)
         {
+            if (service.ParentId.Equals(0)) service.ParentId = null;
+
             if (ModelState.IsValid)
             {
                 if (servicePicture != null)
@@ -569,6 +583,7 @@ namespace Fikarender.Controllers
                                 x.Save(pathSm);
                             }
 
+                            service.ServicePicture = fileName;
                             await db.Services.AddAsync(service);
                             try
                             {
@@ -594,31 +609,6 @@ namespace Fikarender.Controllers
                 {
                     TempData["msg"] = "لطفا یک تصویر انتخاب کنید. |danger";
                 }
-
-                await db.Services.AddAsync(service);
-                try
-                {
-                    await db.SaveChangesAsync();
-
-                    #region Create Shortlink
-
-                    /*string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
-                    db.ShortLink.Add(new ShortLink
-                    {
-                        ItemId = faq.FaqId,
-                        ShortKey = shortLink,
-                        Type = (int)ShortLinkType.Faq
-                    });
-                    await db.SaveChangesAsync();*/
-
-                    #endregion
-
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
             }
             else
             {
@@ -628,18 +618,21 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditService(int? id)//TODO Handle This Section
+        public async Task<IActionResult> EditService(int? id)
         {
             if (!id.HasValue) return NotFound();
 
+            ViewData["serviceId"] = await db.Services.ToListAsync();
             var service = await db.Services.FindAsync(id.Value);
 
-            return PartialView("~/Views/Admin/Edit/Service.cshtml", service);
+            return View("~/Views/Admin/Edit/Service.cshtml", service);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditService(Service service, IFormFile servicePicture)//TODO Handle This Section
+        public async Task<IActionResult> EditService(Service service, IFormFile servicePicture)
         {
+            if (service.ParentId.Equals(0)) service.ParentId = null;
+
             if (ModelState.IsValid)
             {
                 if (servicePicture != null)
@@ -678,7 +671,7 @@ namespace Fikarender.Controllers
                             #endregion
 
                             service.ServicePicture = fileName;
-                            db.Update(service);
+                            db.Services.Update(service);
                             try
                             {
                                 await db.SaveChangesAsync();
@@ -713,7 +706,7 @@ namespace Fikarender.Controllers
                 }
                 else
                 {
-                    db.Update(service);
+                    db.Services.Update(service);
                     try
                     {
                         await db.SaveChangesAsync();
@@ -764,12 +757,13 @@ namespace Fikarender.Controllers
 
         #region WorkSample
 
+        //TODO Design workSample view (video player & imagesGallery) and set status,isRead Fields
         [HttpGet]
         public async Task<IActionResult> WorkSample(int? pageNumber)
         {
-            var services = db.Services;
+            var workSample = db.WorkSamples;
             var pageNum = pageNumber ?? 1;
-            var onePageOfData = await services.ToPagedListAsync(pageNum, 20);
+            var onePageOfData = await workSample.ToPagedListAsync(pageNum, 20);
             ViewBag.data = onePageOfData;
 
             return View();
@@ -778,38 +772,233 @@ namespace Fikarender.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateWorkSample()//TODO Handle this sections 
         {
-            ViewData["WorkSampleServiceId"] = await db.Services.AsNoTracking().Select(service=> service.ServiceId).ToListAsync();
+            ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
             return View("~/Views/Admin/Create/WorkSample.cshtml");
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateWorkSample(WorkSample workSample, IFormFile picture)//, int? serviceId
+        public async Task<IActionResult> CreateWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, int status)//, int? serviceId
         {
+            if (await db.WorkSamples.AnyAsync(w=>w.Title.Equals(workSample.Title)))
+            {
+                ModelState.AddModelError("Title", "عنوان نمونه کار نمیتواند تکراری باشد.‌");
+                TempData["msg"] = "عنوان نمونه کار نمیتواند تکراری باشد. |danger";
+                return View("Create/WorkSample", workSample);
+            }
+            if (workSample.IsShow)
+            {
+                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
+                {
+                    ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
+                    TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
+                    return View("Create/WorkSample", workSample);
+                }
+            }
+            if (sampType.Equals(-1)) return View("Create/WorkSample", workSample);
+
+            workSample.Status = (byte)status;
+            workSample.SampleType = (byte)sampType;
             if (ModelState.IsValid)
             {
-                if (picture != null)
+                if (sampleFile != null)
                 {
-                    if (picture.Length <= 512000)//TODO Chenge limit size
+                    switch (workSample.SampleType)
                     {
-                        if (picture.ContentType == "image/jpeg" || picture.ContentType == "image/png")
+                        case (byte)WorkSampleType.Picture:
+                            {
+                                if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
+                                {
+                                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title)))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title));
+                                    }
+
+                                    var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                    var path = Path.Combine(_environment.WebRootPath, "img\\workSample", $"pic-" + fileName);
+                                    await using (var stream = new FileStream(path, FileMode.Create))
+                                    {
+                                        await sampleFile.CopyToAsync(stream);
+                                    }
+
+                                    #region Resize Images to md & sm
+
+                                    using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                    {
+                                        var x = img.Resize(375, 250, true);
+                                        var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, "md-" + fileName);
+                                        try
+                                        {
+                                            x.Save(pathMd);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                        }
+                                    }
+
+                                    using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                    {
+                                        var x = img.Resize(90, 60, true);
+                                        var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, "sm-" + fileName);
+                                        try
+                                        {
+                                            x.Save(pathSm);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                        }
+                                    }
+
+                                    #endregion
+
+                                    //workSample.ServiceId = serviceId.Value;
+                                    await db.WorkSamples.AddAsync(workSample);
+                                    try
+                                    {
+                                        await db.SaveChangesAsync();
+
+                                        #region Create Shortlink
+
+                                        string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.WorkSample);
+                                        await db.ShortLink.AddAsync(new ShortLink
+                                        {
+                                            ItemId = workSample.WorkSampleId,
+                                            ShortKey = shortLink,
+                                            Type = (int)ShortLinkType.WorkSample
+                                        });
+                                        await db.SaveChangesAsync();
+
+                                        #endregion
+
+                                        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                    }
+                                }
+                                else
+                                {
+                                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                                }
+                                break;
+                            }
+
+                        case (byte)WorkSampleType.Video:
+                            {
+                                if (sampleFile.ContentType == "video/mp4")
+                                {
+                                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title)))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title));
+                                    }
+
+                                    var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                    var path = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + fileName);
+                                    await using (var stream = new FileStream(path, FileMode.Create))
+                                    {
+                                        await sampleFile.CopyToAsync(stream);
+                                    }
+
+                                    //workSample.ServiceId = serviceId.Value;
+                                    await db.WorkSamples.AddAsync(workSample);
+                                    try
+                                    {
+                                        await db.SaveChangesAsync();
+
+                                        #region Create Shortlink
+
+                                        string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.WorkSample);
+                                        await db.ShortLink.AddAsync(new ShortLink
+                                        {
+                                            ItemId = workSample.WorkSampleId,
+                                            ShortKey = shortLink,
+                                            Type = (int)ShortLinkType.WorkSample
+                                        });
+                                        await db.SaveChangesAsync();
+
+                                        #endregion
+
+                                        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                    }
+                                }
+                                else
+                                {
+                                    TempData["msg"] = "لطفا از فرمت jpg  یا mp4 استفاده کنید |danger";
+                                }
+                            }
+                            break;
+
+                        default:
+                            {
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title)))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title));
+                                }
+                                var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                var path = Path.Combine(_environment.WebRootPath, "workSample", $"docs-" + fileName);
+                                await using (var stream = new FileStream(path, FileMode.Create))
+                                {
+                                    await sampleFile.CopyToAsync(stream);
+                                }
+
+                                //workSample.ServiceId = serviceId.Value;
+                                await db.WorkSamples.AddAsync(workSample);
+                                try
+                                {
+                                    await db.SaveChangesAsync();
+
+                                    #region Create Shortlink
+
+                                    string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.WorkSample);
+                                    await db.ShortLink.AddAsync(new ShortLink
+                                    {
+                                        ItemId = workSample.WorkSampleId,
+                                        ShortKey = shortLink,
+                                        Type = (int)ShortLinkType.WorkSample
+                                    });
+                                    await db.SaveChangesAsync();
+
+                                    #endregion
+
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            break;
+                    }
+
+                    #region Only Image
+
+                    /*if (sampleFile.Length <= 512000)//TODO Chenge limit size
+                    {
+                        if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
                         {
-                            var fileName = Path.GetRandomFileName() + Path.GetExtension(picture.FileName).ToLower();
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\workSample", fileName);
                             await using (var stream = new FileStream(path, FileMode.Create))
                             {
-                                await picture.CopyToAsync(stream);
+                                await sampleFile.CopyToAsync(stream);
                             }
 
                             #region Resize Images to md & sm
 
-                            using (Image img = Image.FromStream(picture.OpenReadStream()))
+                            using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
                             {
                                 var x = img.Resize(375, 250, true);
                                 var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample", "md-" + fileName);
                                 x.Save(pathMd);
                             }
 
-                            using (Image img = Image.FromStream(picture.OpenReadStream()))
+                            using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
                             {
                                 var x = img.Resize(90, 60, true);
                                 var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample", "sm-" + fileName);
@@ -826,14 +1015,14 @@ namespace Fikarender.Controllers
 
                                 #region Create Shortlink
 
-                                /*string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
+                                *//*string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
                                 db.ShortLink.Add(new ShortLink
                                 {
                                     ItemId = faq.FaqId,
                                     ShortKey = shortLink,
                                     Type = (int)ShortLinkType.Faq
                                 });
-                                await db.SaveChangesAsync();*/
+                                await db.SaveChangesAsync();*//*
 
                                 #endregion
 
@@ -852,7 +1041,9 @@ namespace Fikarender.Controllers
                     else
                     {
                         TempData["msg"] = "حجم تصویر بیشتر از 512 کیلوبایت است |danger";
-                    }
+                    }*/
+
+                    #endregion
                 }
                 else
                 {
@@ -873,83 +1064,195 @@ namespace Fikarender.Controllers
 
             var workSample = await db.WorkSamples.FindAsync(id.Value);
             ViewData["currentService"] = workSample.ServiceId;
-            ViewData["WorkSampleServiceId"] = await db.Services.AsNoTracking().Select(service => service.ServiceId).ToListAsync();
+            ViewData["currentType"] = workSample.SampleType;
+            ViewData["oldDocument"] = workSample.DocumentFile;
+            ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/WorkSample.cshtml", workSample);
         }
         
         [HttpPost]
-        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile picture)//TODO Handle This Section
+        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, int status)//TODO Handle This Section
         {
+            if (await db.WorkSamples.AnyAsync(w => w.Title.Equals(workSample.Title)))
+            {
+                ModelState.AddModelError("Title", "عنوان نمونه کار نمیتواند تکراری باشد.‌");
+                TempData["msg"] = "عنوان نمونه کار نمیتواند تکراری باشد. |danger";
+                return View("Create/WorkSample", workSample);
+            }
+            if (workSample.IsShow)
+            {
+                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
+                {
+                    ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
+                    TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
+                    return View("Create/WorkSample", workSample);
+                }
+            }
+            if (workSample.IsShow)
+            {
+                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
+                {
+                    ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
+                    return View("Edit/WorkSample", workSample);
+                }
+            }
+            if (sampType.Equals(-1)) return View("Edit/WorkSample", workSample);
+            workSample.Status = (byte)status;
+            workSample.SampleType = (byte)sampType;
             if (ModelState.IsValid)
             {
-                if (picture != null)
+                if (sampleFile != null)
                 {
-                    if (picture.Length <= 512000)//TODO Chenge limit size
+                    switch (workSample.SampleType)
                     {
-                        if (picture.ContentType == "image/jpeg" || picture.ContentType == "image/png")
-                        {
-                            var oldPic = Path.Combine(_environment.WebRootPath, "img\\workSample", workSample.Picture);
-
-                            string name = Path.GetRandomFileName();
-                            string ext = Path.GetExtension(picture.FileName).ToLower();
-                            var fileName = name + ext;
-                            var path = Path.Combine(_environment.WebRootPath, "img\\workSample", fileName);
-                            await using (var stream = new FileStream(path, FileMode.Create))
+                        case (byte)WorkSampleType.Picture:
                             {
-                                await picture.CopyToAsync(stream);
-                            }
-
-                            #region Resize Images to md & sm
-
-                            using (Image img = Image.FromStream(picture.OpenReadStream()))
-                            {
-                                var x = img.Resize(375, 250, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample", "md-" + fileName);
-                                x.Save(pathSm);
-                            }
-
-                            using (Image img = Image.FromStream(picture.OpenReadStream()))
-                            {
-                                var x = img.Resize(90, 60, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample", "sm-" + fileName);
-                                x.Save(pathSm);
-                            }
-
-                            #endregion
-
-                            workSample.Picture = fileName;
-                            db.Update(workSample);
-                            try
-                            {
-                                await db.SaveChangesAsync();
-                                if (System.IO.File.Exists(oldPic))
+                                if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
                                 {
+                                    #region Delete Old ImageFile
+
+                                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title)))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title));
+                                    }
+                                    var deletePath = Path.Combine(_environment.WebRootPath, "img\\workSample", $"pic-" + workSample.DocumentFile);
+                                    System.IO.File.Delete(deletePath);
+
+                                    #endregion
+
+                                    var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                    var path = Path.Combine(_environment.WebRootPath, "img\\workSample", $"pic-" + fileName);
+                                    await using (var stream = new FileStream(path, FileMode.Create))
+                                    {
+                                        await sampleFile.CopyToAsync(stream);
+                                    }
+
+                                    #region Resize Images to md & sm
+
+                                    using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                    {
+                                        var x = img.Resize(375, 250, true);
+                                        var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample", "md-" + fileName);
+                                        try
+                                        {
+                                            x.Save(pathMd);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                        }
+                                    }
+
+                                    using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                    {
+                                        var x = img.Resize(90, 60, true);
+                                        var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample", "sm-" + fileName);
+                                        try
+                                        {
+                                            x.Save(pathSm);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                        }
+                                    }
+
+                                    #endregion
+
+                                    workSample.DocumentFile = fileName;
+                                    db.WorkSamples.Update(workSample);
                                     try
                                     {
-                                        System.IO.File.Delete(oldPic);
+                                        await db.SaveChangesAsync();
+                                        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                                     }
                                     catch (Exception e)
                                     {
                                         TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                                        return RedirectToAction("WorkSample");
                                     }
                                 }
-                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                else
+                                {
+                                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                                }
+                                break;
                             }
-                            catch (Exception e)
+
+                        case (byte)WorkSampleType.Video:
                             {
-                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                if (sampleFile.ContentType == "video/mp4")
+                                {
+                                    #region Delete Old ImageFile
+
+                                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title)))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title));
+                                    }
+                                    var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + workSample.DocumentFile);
+                                    System.IO.File.Delete(deletePath);
+
+                                    #endregion
+                                    
+                                    var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                    var path = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + fileName);
+                                    await using (var stream = new FileStream(path, FileMode.Create))
+                                    {
+                                        await sampleFile.CopyToAsync(stream);
+                                    }
+
+                                    workSample.DocumentFile = fileName;
+                                    db.WorkSamples.Update(workSample);
+                                    try
+                                    {
+                                        await db.SaveChangesAsync();
+                                        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                    }
+                                }
+                                else
+                                {
+                                    TempData["msg"] = "لطفا از فرمت jpg  یا mp4 استفاده کنید |danger";
+                                }
                             }
-                        }
-                        else
-                        {
-                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-                        }
-                    }
-                    else
-                    {
-                        TempData["msg"] = "حجم تصویر بیشتر از 512 کیلوبایت است |danger";
+                            break;
+
+                        default:
+                            {
+                                #region Delete Old ImageFile
+
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title)))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title));
+                                }
+                                var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title, $"docs-" + workSample.DocumentFile);
+                                System.IO.File.Delete(deletePath);
+
+                                #endregion
+                                
+                                var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                var path = Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title, $"docs-" + fileName);
+                                await using (var stream = new FileStream(path, FileMode.Create))
+                                {
+                                    await sampleFile.CopyToAsync(stream);
+                                }
+
+                                workSample.DocumentFile = fileName;
+                                db.WorkSamples.Update(workSample);
+                                try
+                                {
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            break;
                     }
                 }
                 else
@@ -972,30 +1275,70 @@ namespace Fikarender.Controllers
             }
             return RedirectToAction("WorkSample");
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> DeleteWorkSample(int id)
         {
             var workSample = await db.WorkSamples.FindAsync(id);
             if (workSample != null)
             {
-                var path = Path.Combine(_environment.WebRootPath, "img\\workSample", workSample.Picture);
-                var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample", "md-" + workSample.Picture);
-                var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample", "sm-" + workSample.Picture);
-
-                db.WorkSamples.Remove(workSample);
-                try
+                switch (workSample.SampleType)
                 {
-                    System.IO.File.Delete(path);
-                    System.IO.File.Delete(pathMd);
-                    System.IO.File.Delete(pathSm);
+                    case (byte)WorkSampleType.Picture:
+                        {
+                            var pathImage = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, $"pic-" + workSample.DocumentFile);
+                            var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, $"md-" + workSample.DocumentFile);
+                            var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, $"sm-" + workSample.DocumentFile);
+                            db.WorkSamples.Remove(workSample);
+                            try
+                            {
+                                System.IO.File.Delete(pathImage);
+                                System.IO.File.Delete(pathMd);
+                                System.IO.File.Delete(pathSm);
+                                await db.SaveChangesAsync();
+                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                            }
+                            catch (Exception e)
+                            {
+                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                            }
+                        }
+                        break;
 
-                    await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    case (byte)WorkSampleType.Video:
+                        {
+                            var pathVideo = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + workSample.DocumentFile);
+                            db.WorkSamples.Remove(workSample);
+                            try
+                            {
+                                System.IO.File.Delete(pathVideo);
+
+                                await db.SaveChangesAsync();
+                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                            }
+                            catch (Exception e)
+                            {
+                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                            }
+                        }
+                        break;
+
+                    default:
+                        {
+                            var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title, $"docs-" + workSample.DocumentFile);
+                            db.WorkSamples.Remove(workSample);
+                            try
+                            {
+                                System.IO.File.Delete(deletePath);
+                                await db.SaveChangesAsync();
+                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                            }
+                            catch (Exception e)
+                            {
+                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                            }
+                        }
+                        break;
                 }
             }
             return Redirect(Request.Headers["Referer"].ToString());
@@ -1210,6 +1553,7 @@ namespace Fikarender.Controllers
             var pageNum = pageNumber ?? 1;
             var onePageOfData = await data.ToPagedListAsync(pageNum, 10);
             ViewBag.data = onePageOfData;
+
             return View();
         }
 
@@ -1217,7 +1561,7 @@ namespace Fikarender.Controllers
         public async Task<IActionResult> CreateFaq()
         {
             ViewData["tags"] = await db.Tag.Where(a => a.Type.Equals((byte)TagType.Faq)).AsNoTracking().ToListAsync();
-            return View("~/Views/Admin/Create/Faq.cshtml");
+            return PartialView("~/Views/Admin/Create/Faq.cshtml");
         }
 
         [HttpPost]
@@ -1231,7 +1575,7 @@ namespace Fikarender.Controllers
                     await db.SaveChangesAsync();
 
                     string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
-                    db.ShortLink.Add(new ShortLink
+                    await db.ShortLink.AddAsync(new ShortLink
                     {
                         ItemId = faq.FaqId,
                         ShortKey = shortLink,
@@ -1287,7 +1631,7 @@ namespace Fikarender.Controllers
             {
                 var currentTags = await db.FaqTags.Where(a => a.FaqId.Equals(faq.FaqId)).ToListAsync();
                 if (currentTags.Count > 0) { db.FaqTags.RemoveRange(currentTags.AsEnumerable()); }
-                
+
                 if (tags.Length > 0)
                 {
                     foreach (var item in tags)

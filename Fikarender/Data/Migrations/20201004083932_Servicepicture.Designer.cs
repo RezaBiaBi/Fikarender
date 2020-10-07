@@ -4,14 +4,16 @@ using Fikarender.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Fikarender.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201004083932_Servicepicture")]
+    partial class Servicepicture
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -207,13 +209,11 @@ namespace Fikarender.Data.Migrations
 
                     b.Property<string>("Answer")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasMaxLength(2147483647);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Question")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasMaxLength(2147483647);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Sort")
                         .HasColumnType("int");
@@ -254,8 +254,8 @@ namespace Fikarender.Data.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(1024)")
-                        .HasMaxLength(1024);
+                        .HasColumnType("nvarchar(200)")
+                        .HasMaxLength(200);
 
                     b.Property<int?>("ParentId")
                         .HasColumnType("int");
@@ -444,10 +444,6 @@ namespace Fikarender.Data.Migrations
                         .HasColumnType("nvarchar(600)")
                         .HasMaxLength(600);
 
-                    b.Property<string>("DocumentFile")
-                        .HasColumnType("nvarchar(1024)")
-                        .HasMaxLength(1024);
-
                     b.Property<bool>("IsShow")
                         .HasColumnType("bit");
 
@@ -461,8 +457,10 @@ namespace Fikarender.Data.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasMaxLength(200);
 
-                    b.Property<byte>("SampleType")
-                        .HasColumnType("tinyint");
+                    b.Property<string>("Picture")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(600)")
+                        .HasMaxLength(600);
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");

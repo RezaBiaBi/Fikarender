@@ -9,6 +9,8 @@
     <Compile Remove="Data\Config.cs" />
     <Compile Remove="Data\ContactUs.cs" />
     <Compile Remove="Data\MainSlider.cs" />
+    <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.cs" />
+    <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +48,12 @@
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="WebMarkupMin.AspNetCore3" Version="2.8.11" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="8.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\img\service\" />
+    <Folder Include="wwwroot\img\team\" />
+    <Folder Include="wwwroot\workSample\" />
   </ItemGroup>
 
 </Project>

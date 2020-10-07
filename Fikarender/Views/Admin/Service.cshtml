@@ -1,0 +1,143 @@
+﻿@model Service
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Service>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+    ViewData["pageId"] = 22;
+    ViewData["Title"] = "خدمات";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    @*List<WorkSample> workSamples = (List<WorkSample>)ViewData["workSamples"];*@
+    List<WorkSample> serviceWorkSamples = (List<WorkSample>)ViewData["serviceWorkSamples"];
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        function tagDuplicate(formName) {
+            preloader();
+            var val = '';
+            if (formName == 'create') {
+                val = $('#create-form #UniqueName').val();
+            }
+            else {
+                val = $('#edit-form #UniqueName').val();
+            }
+            $.post('@Url.Action("TagDuplicate")', { 'value': val }, function (r) {
+                UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 10000 });
+            }, 'json').then(function () {
+                setTimeout(function () {
+                    preloader();
+                }, 200);
+            });
+        }
+        @*function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditService")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                setTimeout(function () {
+                    UIkit.modal('#edit-modal').show();
+                    preloader();
+                }, 200);
+            })
+        }*@
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" asp-action="CreateService">افزودن</a>
+        <a class="uk-button uk-button-secondary uk-margin-small-right" href="#search-modal" uk-toggle>جستجو</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th width="50">ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.ServicePicture)</th>
+                    <th>@Html.DisplayNameFor(model => model.ServiceTitle)</th>
+                    <th>@Html.DisplayNameFor(model => model.ServiceMetaTitle)</th>
+                    <th>دسته ها</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td><img src="~/img/service/@item.ServicePicture" width="50" /></td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ServiceTitle)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ServiceMetaTitle)
+                        </td>
+                        <td>
+                            @if (item.ParentId != null)
+                            {
+                                foreach (var service in data.Where(s => s.ServiceId.Equals(item.ParentId)))
+                                {
+                                    <p class="uk-text-center uk-text-primary">@Html.DisplayFor(modelItem => service.ServiceTitle)</p>
+                                    @*<hr />*@
+                                }
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.ServiceTitle) <span class="uk-text-success">(دسته مادر)</span>
+                            }
+                        </td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditService" asp-route-id="@item.ServiceId"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.ServiceId)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Service", new { pageNumber = page }))
+        </div>
+    }
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteService" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            @*<!p class="uk-text-bold uk-text-danger">ابتدا باید تمام نمونه کارهای @if (Model.ServiceTitle.Any())
+                {@Model.ServiceTitle}else{<text></text>} را خذف کنید سپس این سرویس را حذف کنید.</!p>*@
+            <p class="uk-text-bold uk-text-danger">ابتدا باید تمام نمونه کارها را حذف کنید سپس این سرویس را حذف کنید.</p>
+            <p>این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+
