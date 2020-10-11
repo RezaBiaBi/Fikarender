@@ -83,7 +83,7 @@
                     <div class="uk-width-1-2@s">
                         <span class="fa fa-phone"></span>
                         <label asp-for="ServiceId" class="uk-form-label">سرویس نمونه‌کار</label>
-                        <select asp-for="ServiceId" class="uk-select uk-border-rounded">
+                        <select id="ServiceId" name="ServiceId" asp-for="ServiceId" class="uk-select uk-border-rounded">
                             <option value="0" selected="selected">لطفا یک سرویس برای نمونه‌کارتان انتخاب کنید...</option>
                             @foreach (var service in services)
                             {

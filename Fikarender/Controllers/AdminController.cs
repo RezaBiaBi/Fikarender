@@ -198,15 +198,26 @@ namespace Fikarender.Controllers
         #region Gallery
 
         [HttpGet]
-        public async Task<IActionResult> Gallery(int? pageNumber)
+        public async Task<IActionResult> Gallery(int? pageNumber, int? serviceId)
         {
+            if (serviceId.HasValue)
+            {
+                ViewData["serviceWorkSamples"] = await db.WorkSamples.Where(w => w.ServiceId.Equals(serviceId)).ToListAsync();
+
+                var workSamples = db.WorkSamples.AsNoTracking().OrderByDescending(a => a.WorkSampleId);
+                var pageNumb = pageNumber ?? 1;
+                var onePageOfWorkSamples = await workSamples.ToPagedListAsync(pageNumb, 12);
+                ViewBag.workSamples = onePageOfWorkSamples;
+            }
+
             var data = db.UploadedFiles.AsNoTracking().OrderByDescending(a => a.Id);
             var pageNum = pageNumber ?? 1;
             var onePageOfData = await data.ToPagedListAsync(pageNum, 24);
             ViewBag.data = onePageOfData;
+            
             return View();
         }
-
+        
         [HttpPost]
         public async Task<JsonResult> Gallery(List<IFormFile> images)
         {
@@ -228,7 +239,7 @@ namespace Fikarender.Controllers
                     string ext = Path.GetExtension(img.FileName).ToLower();
                     var fileName = name + ext;
                     var path = Path.Combine(_environment.WebRootPath, "img\\upload", fileName);
-                    using (var stream = new FileStream(path, FileMode.Create))
+                    await using (var stream = new FileStream(path, FileMode.Create))
                     {
                         await img.CopyToAsync(stream);
                     }
@@ -770,36 +781,39 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateWorkSample()//TODO Handle this sections 
+        public async Task<IActionResult> CreateWorkSample(int? serviceId)//TODO Handle this sections 
         {
-            ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
+            var services = await db.Services.ToListAsync();
+            ViewData["WorkSampleServiceId"] = services;
+            if(serviceId.HasValue) ViewData["selectedCreateService"] = services.Single(s => s.ServiceId.Equals(serviceId)).ServiceId;
+
             return View("~/Views/Admin/Create/WorkSample.cshtml");
         }
-
+        
         [HttpPost]
         public async Task<IActionResult> CreateWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, int status)//, int? serviceId
         {
-            if (await db.WorkSamples.AnyAsync(w=>w.Title.Equals(workSample.Title)))
-            {
-                ModelState.AddModelError("Title", "عنوان نمونه کار نمیتواند تکراری باشد.‌");
-                TempData["msg"] = "عنوان نمونه کار نمیتواند تکراری باشد. |danger";
-                return View("Create/WorkSample", workSample);
-            }
-            if (workSample.IsShow)
-            {
-                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
-                {
-                    ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
-                    TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
-                    return View("Create/WorkSample", workSample);
-                }
-            }
-            if (sampType.Equals(-1)) return View("Create/WorkSample", workSample);
-
-            workSample.Status = (byte)status;
-            workSample.SampleType = (byte)sampType;
             if (ModelState.IsValid)
             {
+                if (await db.WorkSamples.AnyAsync(w => w.Title.Equals(workSample.Title)))
+                {
+                    /*ModelState.AddModelError("Title", "عنوان نمونه کار نمیتواند تکراری باشد.‌");*/
+                    TempData["msg"] = "عنوان نمونه کار نمیتواند تکراری باشد. |danger";
+                }
+                if (workSample.IsShow)
+                {
+                    if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
+                    {
+                        /*ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");*/
+                        TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
+                    }
+                }
+                if (sampType.Equals(-1)) return RedirectToAction("CreateWorkSample", new { serviceId = workSample.ServiceId });
+                if (workSample.ServiceId.Equals(0)) return RedirectToAction("CreateWorkSample", new { serviceId = workSample.ServiceId });
+
+                workSample.Status = (byte)status;
+                workSample.SampleType = (byte)sampType;
+
                 if (sampleFile != null)
                 {
                     switch (workSample.SampleType)
@@ -814,7 +828,7 @@ namespace Fikarender.Controllers
                                     }
 
                                     var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
-                                    var path = Path.Combine(_environment.WebRootPath, "img\\workSample", $"pic-" + fileName);
+                                    var path = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, $"pic-" + fileName);
                                     await using (var stream = new FileStream(path, FileMode.Create))
                                     {
                                         await sampleFile.CopyToAsync(stream);
@@ -852,7 +866,7 @@ namespace Fikarender.Controllers
 
                                     #endregion
 
-                                    //workSample.ServiceId = serviceId.Value;
+                                    workSample.DocumentFile = fileName;
                                     await db.WorkSamples.AddAsync(workSample);
                                     try
                                     {
@@ -901,7 +915,7 @@ namespace Fikarender.Controllers
                                         await sampleFile.CopyToAsync(stream);
                                     }
 
-                                    //workSample.ServiceId = serviceId.Value;
+                                    workSample.DocumentFile = fileName;
                                     await db.WorkSamples.AddAsync(workSample);
                                     try
                                     {
@@ -947,7 +961,7 @@ namespace Fikarender.Controllers
                                     await sampleFile.CopyToAsync(stream);
                                 }
 
-                                //workSample.ServiceId = serviceId.Value;
+                                workSample.DocumentFile = fileName;
                                 await db.WorkSamples.AddAsync(workSample);
                                 try
                                 {
@@ -1074,30 +1088,17 @@ namespace Fikarender.Controllers
         [HttpPost]
         public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, int status)//TODO Handle This Section
         {
-            if (await db.WorkSamples.AnyAsync(w => w.Title.Equals(workSample.Title)))
-            {
-                ModelState.AddModelError("Title", "عنوان نمونه کار نمیتواند تکراری باشد.‌");
-                TempData["msg"] = "عنوان نمونه کار نمیتواند تکراری باشد. |danger";
-                return View("Create/WorkSample", workSample);
-            }
             if (workSample.IsShow)
             {
                 if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
                 {
                     ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
                     TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
-                    return View("Create/WorkSample", workSample);
-                }
-            }
-            if (workSample.IsShow)
-            {
-                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() > 3)
-                {
-                    ModelState.AddModelError("IsShow", "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید‌");
-                    return View("Edit/WorkSample", workSample);
                 }
             }
             if (sampType.Equals(-1)) return View("Edit/WorkSample", workSample);
+            if (workSample.ServiceId.Equals(0)) return View("Edit/WorkSample", workSample);
+            
             workSample.Status = (byte)status;
             workSample.SampleType = (byte)sampType;
             if (ModelState.IsValid)
@@ -1277,8 +1278,76 @@ namespace Fikarender.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteWorkSample(int id)
+        public async Task<IActionResult> DeleteWorkSample(int id, int? workSampleId)
         {
+            if (workSampleId.HasValue)
+            {
+                var workSampleFile = await db.WorkSamples.FindAsync(workSampleId);
+                if (workSampleFile != null)
+                {
+                    switch (workSampleFile.SampleType)
+                    {
+                        case (byte)WorkSampleType.Picture:
+                            {
+                                var pathImage = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"pic-" + workSampleFile.DocumentFile);
+                                var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"md-" + workSampleFile.DocumentFile);
+                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"sm-" + workSampleFile.DocumentFile);
+                                workSampleFile.DocumentFile = "";
+                                db.WorkSamples.Update(workSampleFile);
+                                try
+                                {
+                                    System.IO.File.Delete(pathImage);
+                                    System.IO.File.Delete(pathMd);
+                                    System.IO.File.Delete(pathSm);
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            break;
+
+                        case (byte)WorkSampleType.Video:
+                            {
+                                var pathVideo = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSampleFile.Title, $"video-" + workSampleFile.DocumentFile);
+                                workSampleFile.DocumentFile = "";
+                                db.WorkSamples.Update(workSampleFile);
+                                try
+                                {
+                                    System.IO.File.Delete(pathVideo);
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            break;
+
+                        default:
+                            {
+                                var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSampleFile.Title, $"docs-" + workSampleFile.DocumentFile);
+                                workSampleFile.DocumentFile = "";
+                                db.WorkSamples.Update(workSampleFile);
+                                try
+                                {
+                                    System.IO.File.Delete(deletePath);
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+
             var workSample = await db.WorkSamples.FindAsync(id);
             if (workSample != null)
             {
@@ -1295,6 +1364,10 @@ namespace Fikarender.Controllers
                                 System.IO.File.Delete(pathImage);
                                 System.IO.File.Delete(pathMd);
                                 System.IO.File.Delete(pathSm);
+                                if (Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title)))
+                                {
+                                    Directory.Delete(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title));
+                                }
                                 await db.SaveChangesAsync();
                                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                             }
@@ -1312,7 +1385,10 @@ namespace Fikarender.Controllers
                             try
                             {
                                 System.IO.File.Delete(pathVideo);
-
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title)))
+                                {
+                                    Directory.Delete(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title));
+                                }
                                 await db.SaveChangesAsync();
                                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                             }
@@ -1330,6 +1406,10 @@ namespace Fikarender.Controllers
                             try
                             {
                                 System.IO.File.Delete(deletePath);
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title)))
+                                {
+                                    Directory.Delete(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title));
+                                }
                                 await db.SaveChangesAsync();
                                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                             }
@@ -1339,6 +1419,304 @@ namespace Fikarender.Controllers
                             }
                         }
                         break;
+                }
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> WorkSampleDocumentFile(int? workSampleId, IFormFile sampleFile)
+        {
+            if (sampleFile == null) return Json(false);
+            var workSample = await db.WorkSamples.FindAsync(workSampleId);
+            if (workSample != null)
+            {
+                switch (workSample.SampleType)
+                {
+                    case (byte)WorkSampleType.Picture:
+                        {
+                            if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
+                            {
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title)))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title));
+                                }
+                                else
+                                {
+                                    var deletePath = Path.Combine(_environment.WebRootPath, "img\\workSample", $"pic-" + workSample.DocumentFile);
+                                    System.IO.File.Delete(deletePath);
+                                }
+
+                                var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                var path = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, $"pic-" + fileName);
+                                await using (var stream = new FileStream(path, FileMode.Create))
+                                {
+                                    await sampleFile.CopyToAsync(stream);
+                                }
+
+                                #region Resize Images to md & sm
+
+                                using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                {
+                                    var x = img.Resize(375, 250, true);
+                                    var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, "md-" + fileName);
+                                    try
+                                    {
+                                        x.Save(pathMd);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                    }
+                                }
+
+                                using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
+                                {
+                                    var x = img.Resize(90, 60, true);
+                                    var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSample.Title, "sm-" + fileName);
+                                    try
+                                    {
+                                        x.Save(pathSm);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
+                                    }
+                                }
+
+                                #endregion
+
+                                workSample.DocumentFile = fileName;
+                                db.WorkSamples.Update(workSample);
+                                try
+                                {
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            else
+                            {
+                                TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                                return Json(false);
+                            }
+                            break;
+                        }
+
+                    case (byte)WorkSampleType.Video:
+                        {
+                            if (sampleFile.ContentType == "video/mp4")
+                            {
+                                if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title)))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title));
+                                }
+                                else
+                                {
+                                    var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + workSample.DocumentFile);
+                                    System.IO.File.Delete(deletePath);
+                                }
+
+                                var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                                var path = Path.Combine(_environment.WebRootPath, "workSample\\video\\" + workSample.Title, $"video-" + fileName);
+                                await using (var stream = new FileStream(path, FileMode.Create))
+                                {
+                                    await sampleFile.CopyToAsync(stream);
+                                }
+
+                                workSample.DocumentFile = fileName;
+                                db.WorkSamples.Update(workSample);
+                                try
+                                {
+                                    await db.SaveChangesAsync();
+                                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                }
+                            }
+                            else
+                            {
+                                TempData["msg"] = "لطفا از فرمت jpg  یا mp4 استفاده کنید |danger";
+                            }
+                        }
+                        break;
+
+                    default:
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title)))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title));
+                            }
+                            else
+                            {
+                                var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\docs\\" + workSample.Title, $"docs-" + workSample.DocumentFile);
+                                System.IO.File.Delete(deletePath);
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "workSample", $"docs-" + fileName);
+                            await using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await sampleFile.CopyToAsync(stream);
+                            }
+
+                            workSample.DocumentFile = fileName;
+                            db.WorkSamples.Update(workSample);
+                            try
+                            {
+                                await db.SaveChangesAsync();
+                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                            }
+                            catch (Exception e)
+                            {
+                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                            }
+                        }
+                        break;
+                }
+            }
+
+            return Json(true);
+        }
+
+        #endregion
+
+        #region Faq
+
+        [HttpGet]
+        public async Task<IActionResult> Faq(int? pageNumber)
+        {
+            var data = db.Faqs.OrderByDescending(a => a.Sort);
+            var pageNum = pageNumber ?? 1;
+            var onePageOfData = await data.ToPagedListAsync(pageNum, 10);
+            ViewBag.data = onePageOfData;
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateFaq()
+        {
+            ViewData["tags"] = await db.Tag.Where(a => a.Type.Equals((byte)TagType.Faq)).AsNoTracking().ToListAsync();
+            return PartialView("~/Views/Admin/Create/Faq.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateFaq(Faq faq, int[] tags)
+        {
+            if (ModelState.IsValid)
+            {
+                await db.Faqs.AddAsync(faq);
+                try
+                {
+                    await db.SaveChangesAsync();
+
+                    string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
+                    await db.ShortLink.AddAsync(new ShortLink
+                    {
+                        ItemId = faq.FaqId,
+                        ShortKey = shortLink,
+                        Type = (int)ShortLinkType.Faq
+                    });
+                    await db.SaveChangesAsync();
+
+                    if (tags.Length > 0)
+                    {
+                        foreach (var item in tags)
+                        {
+                            db.Add(new FaqTag()
+                            {
+                                FaqId = faq.FaqId,
+                                TagId = item
+                            });
+                        }
+                    }
+
+                    await db.SaveChangesAsync();
+
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return RedirectToAction("Faq");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditFaq(int? id)
+        {
+            if (!id.HasValue) return NotFound();
+
+            var faq = await db.Faqs.FindAsync(id.Value);
+            var faqCurrentTags = await db.FaqTags.AsNoTracking().Where(a => a.FaqId.Equals(id.Value)).Select(a => a.TagId).ToListAsync();
+            ViewData["faqCurrentTags"] = await db.Tag.AsNoTracking().Where(a => faqCurrentTags.Contains(a.TagId)).Select(a => a.TagId).ToListAsync();
+            ViewData["tags"] = await db.Tag.Where(a => a.Type.Equals((byte)TagType.Faq)).AsNoTracking().ToListAsync();
+
+            return PartialView("~/Views/Admin/Edit/Faq.cshtml", faq);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditFaq(Faq faq, int[] tags)
+        {
+            if (ModelState.IsValid)
+            {
+                var currentTags = await db.FaqTags.Where(a => a.FaqId.Equals(faq.FaqId)).ToListAsync();
+                if (currentTags.Count > 0) { db.FaqTags.RemoveRange(currentTags.AsEnumerable()); }
+
+                if (tags.Length > 0)
+                {
+                    foreach (var item in tags)
+                    {
+                        db.Add(new FaqTag()
+                        {
+                            FaqId = faq.FaqId,
+                            TagId = item
+                        });
+                    }
+                }
+                db.Faqs.Update(faq);
+                try
+                {
+                    await db.SaveChangesAsync();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return RedirectToAction("Faq");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteFaq(int id)
+        {
+            var faq = await db.Faqs.FindAsync(id);
+            if (faq != null)
+            {
+                db.Faqs.Remove(faq);
+                try
+                {
+                    await db.SaveChangesAsync();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
                 }
             }
             return Redirect(Request.Headers["Referer"].ToString());
@@ -1531,145 +1909,6 @@ namespace Fikarender.Controllers
                 {
                     System.IO.File.Delete(path);
 
-                    await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
-            }
-            return Redirect(Request.Headers["Referer"].ToString());
-        }
-
-        #endregion
-
-        #region Faq
-
-        [HttpGet]
-        public async Task<IActionResult> Faq(int? pageNumber)
-        {
-            var data = db.Faqs.OrderByDescending(a => a.Sort);
-            var pageNum = pageNumber ?? 1;
-            var onePageOfData = await data.ToPagedListAsync(pageNum, 10);
-            ViewBag.data = onePageOfData;
-
-            return View();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> CreateFaq()
-        {
-            ViewData["tags"] = await db.Tag.Where(a => a.Type.Equals((byte)TagType.Faq)).AsNoTracking().ToListAsync();
-            return PartialView("~/Views/Admin/Create/Faq.cshtml");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateFaq(Faq faq, int[] tags)
-        {
-            if (ModelState.IsValid)
-            {
-                await db.Faqs.AddAsync(faq);
-                try
-                {
-                    await db.SaveChangesAsync();
-
-                    string shortLink = _linkTools.GenerateShortLink(5, ShortLinkType.Blog);
-                    await db.ShortLink.AddAsync(new ShortLink
-                    {
-                        ItemId = faq.FaqId,
-                        ShortKey = shortLink,
-                        Type = (int)ShortLinkType.Faq
-                    });
-                    await db.SaveChangesAsync();
-
-                    if (tags.Length > 0)
-                    {
-                        foreach (var item in tags)
-                        {
-                            db.Add(new FaqTag()
-                            {
-                                FaqId = faq.FaqId,
-                                TagId = item
-                            });
-                        }
-                    }
-
-                    await db.SaveChangesAsync();
-
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
-            }
-            else
-            {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-            }
-            return RedirectToAction("Faq");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> EditFaq(int? id)
-        {
-            if (!id.HasValue) return NotFound();
-
-            var faq = await db.Faqs.FindAsync(id.Value);
-            var faqCurrentTags = await db.FaqTags.AsNoTracking().Where(a => a.FaqId.Equals(id.Value)).Select(a => a.TagId).ToListAsync();
-            ViewData["faqCurrentTags"] = await db.Tag.AsNoTracking().Where(a => faqCurrentTags.Contains(a.TagId)).Select(a => a.TagId).ToListAsync();
-            ViewData["tags"] = await db.Tag.Where(a => a.Type.Equals((byte)TagType.Faq)).AsNoTracking().ToListAsync();
-
-            return PartialView("~/Views/Admin/Edit/Faq.cshtml", faq);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> EditFaq(Faq faq, int[] tags)
-        {
-            if (ModelState.IsValid)
-            {
-                var currentTags = await db.FaqTags.Where(a => a.FaqId.Equals(faq.FaqId)).ToListAsync();
-                if (currentTags.Count > 0) { db.FaqTags.RemoveRange(currentTags.AsEnumerable()); }
-
-                if (tags.Length > 0)
-                {
-                    foreach (var item in tags)
-                    {
-                        db.Add(new FaqTag()
-                        {
-                            FaqId = faq.FaqId,
-                            TagId = item
-                        });
-                    }
-                }
-                db.Faqs.Update(faq);
-                try
-                {
-                    await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
-            }
-            else
-            {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-            }
-            return RedirectToAction("Faq");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteFaq(int id)
-        {
-            var faq = await db.Faqs.FindAsync(id);
-            if (faq != null)
-            {
-                db.Faqs.Remove(faq);
-                try
-                {
                     await db.SaveChangesAsync();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }

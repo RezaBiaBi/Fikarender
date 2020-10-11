@@ -230,7 +230,7 @@
                             @Html.DisplayFor(modelItem => item.Title)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Service.ServiceTitle)
+                            <a asp-action="Service">@Html.DisplayFor(modelItem => item.Service.ServiceTitle)</a>
                         </td>
                         <td>
                             @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
@@ -251,10 +251,14 @@
                         </td>
                         <td>
                             @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
-                            {<!img src="~/img/workSample/pic-"@item.DocumentFile width="70" />}
+                            {
+                                <a id="imgFile" class="uk-box-shadow-hover-large" asp-action="Gallery" asp-route-serviceId="@item.ServiceId">
+                                    <img src="~/img/workSample/@item.Title/pic-@item.DocumentFile" width="200" />
+                                </a>
+                            }
                             else
                             {
-                                <a class="uk-button uk-button-primary uk-button-small" asp-action="ShowWorkSampleVideo" asp-route-id="@item.WorkSampleId"><i class="fas fa-video"></i></a>
+                                <a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@item.ServiceId"><i class="fas fa-video"></i></a>
                             }
                         </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditWorkSample" asp-route-id="@item.WorkSampleId"><i class="far fa-edit"></i></a></td>

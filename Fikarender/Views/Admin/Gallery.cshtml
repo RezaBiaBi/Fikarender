@@ -7,206 +7,462 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var data = ViewBag.data as IPagedList<UploadedFile>;
 }
-@section Scripts{
-    <script>
-        var bar = document.getElementById('js-progressbar');
+@if (ViewData["serviceWorkSamples"] != null)
+{
+    var workSamples = ViewBag.workSamples as IPagedList<UploadedFile>;
+    List<WorkSample> serviceWorkSamples = (List<WorkSample>)ViewData["serviceWorkSamples"];
+    int serviceId = serviceWorkSamples.Select(s => s.Service.ServiceId).FirstOrDefault();
+    ViewData["Title"] = $"گالری نمونه‌کار سرویس({serviceWorkSamples.Select(s => s.Service.ServiceTitle).FirstOrDefault()})";
 
-        UIkit.upload('.js-upload', {
+    @section Scripts{
+        <script>
+            var bar = document.getElementById('js-progressbar');
 
-            url: '/admin/gallery',
-            multiple: true,
-            name: 'images',
-            concurrent: 10,
+            UIkit.upload('.js-upload', {
 
-            beforeSend: function () {
-                console.log('beforeSend', arguments);
-            },
-            beforeAll: function () {
-                console.log('beforeAll', arguments);
-            },
-            load: function () {
-                console.log('load', arguments);
-            },
-            error: function () {
-                console.log('error', arguments);
-            },
-            complete: function () {
-                console.log('complete', arguments);
-            },
+                url: '@Url.Action("WorkSampleDocumentFile", new { workSampleId = serviceId })',
+                multiple: false,
+                name: 'sampleFile',
 
-            loadStart: function (e) {
-                console.log('loadStart', arguments);
+                beforeSend: function () {
+                    console.log('beforeSend', arguments);
+                },
+                beforeAll: function () {
+                    console.log('beforeAll', arguments);
+                },
+                load: function () {
+                    console.log('load', arguments);
+                },
+                error: function () {
+                    console.log('error', arguments);
+                },
+                complete: function () {
+                    console.log('complete', arguments);
+                },
 
-                bar.removeAttribute('hidden');
-                bar.max = e.total;
-                bar.value = e.loaded;
-            },
+                loadStart: function (e) {
+                    console.log('loadStart', arguments);
 
-            progress: function (e) {
-                console.log('progress', arguments);
+                    bar.removeAttribute('hidden');
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
 
-                bar.max = e.total;
-                bar.value = e.loaded;
-            },
+                progress: function (e) {
+                    console.log('progress', arguments);
 
-            loadEnd: function (e) {
-                console.log('loadEnd', arguments);
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
 
-                bar.max = e.total;
-                bar.value = e.loaded;
-            },
+                loadEnd: function (e) {
+                    console.log('loadEnd', arguments);
 
-            completeAll: function () {
-                console.log('completeAll', arguments);
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
 
-                setTimeout(function () {
-                    bar.setAttribute('hidden', 'hidden');
-                }, 2000);
-                window.location.reload(true);
-            }
+                completeAll: function () {
+                    console.log('completeAll', arguments);
 
-        });
-        function remove(id) {
-            $('#delete-modal input').val(id);
-            UIkit.modal('#delete-modal').show();
-        }
-        function submitRemove() {
-            $('#preloader').fadeIn();
-            var id = $('#delete-form input').val();
-            $.post('/admin/delete-uploaded-file', { 'id': id }, function (r) {
-                UIkit.modal('#delete-modal').hide();
-                if (r.status == 'success') {
-                    $('#pic-' + id).fadeOut(150);
+                    setTimeout(function () {
+                        bar.setAttribute('hidden', 'hidden');
+                    }, 2000);
+                    window.location.reload(true);
                 }
-                UIkit.notification({
-                    message: r.msg,
-                    status: r.status,
-                    pos: 'bottom-center',
-                    timeout: 5000
-                });
-            }, 'json').then(function () {
-                $('#preloader').fadeOut();
-            })
-        }
-        function url(u) {
-            $('#url-modal input').val(u);
-            UIkit.modal('#url-modal').show();
-        }
-        function copy() {
-            var i = $('#url-modal input').select();
-            document.execCommand("copy");
-            UIkit.notification({
-                message: 'کپی شد.',
-                status: 'primary',
-                pos: 'top-center',
-                timeout: 1000
-            });
-        }
-        $('.box.uk-position-relative').hover(function () {
-            $(this).find('.delete').fadeIn(150);
-            $(this).find('.url').fadeIn(150);
-        }, function () {
-            $(this).find('.delete').fadeOut(150);
-            $(this).find('.url').fadeOut(150);
-        });
-    </script>
-}
-<style>
-    .box .delete {
-        position: absolute;
-        padding: 4px;
-        color: #fff;
-        background: #f00;
-        border-radius: 50%;
-        border: 3px solid #fff;
-        top: 5px;
-        right: 5px;
-        cursor: pointer;
-        display: none;
-    }
 
-    .box .url {
-        position: absolute;
-        padding: 4px;
-        color: #fff;
-        background: #0f0;
-        border-radius: 50%;
-        border: 3px solid #fff;
-        top: 5px;
-        left: 5px;
-        cursor: pointer;
-        display: none;
+            });
+            function remove(id) {
+                $('#delete-modal input').val(id);
+                UIkit.modal('#delete-modal').show();
+            }
+            function submitRemove() {
+                $('#preloader').fadeIn();
+                var workSampleId = $('#delete-form input').val();
+                $.post('/admin/delete-work-sample', { 'workSampleId': workSampleId }, function (r) {
+                    UIkit.modal('#delete-modal').hide();
+                    if (r.status == 'success') {
+                        $('#file-' + id).fadeOut(150);
+                    }
+                    UIkit.notification({
+                        message: r.msg,
+                        status: r.status,
+                        pos: 'bottom-center',
+                        timeout: 5000
+                    });
+                }, 'json').then(function () {
+                    $('#preloader').fadeOut();
+                })
+            }
+            function url(u) {
+                $('#url-modal input').val(u);
+                UIkit.modal('#url-modal').show();
+            }
+            function copy() {
+                var i = $('#url-modal input').select();
+                document.execCommand("copy");
+                UIkit.notification({
+                    message: 'کپی شد.',
+                    status: 'primary',
+                    pos: 'top-center',
+                    timeout: 1000
+                });
+            }
+            $('.box.uk-position-relative').hover(function () {
+                $(this).find('.delete').fadeIn(150);
+                $(this).find('.url').fadeIn(150);
+            }, function () {
+                $(this).find('.delete').fadeOut(150);
+                $(this).find('.url').fadeOut(150);
+            });
+        </script>
     }
-</style>
-<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
-    <div class="uk-width-auto@m">
-        <ul class="uk-breadcrumb">
-            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
-            <li><span>@ViewData["Title"]</span></li>
-        </ul>
+    <style>
+        .box .delete {
+            position: absolute;
+            padding: 4px;
+            color: #fff;
+            background: #f00;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .box .url {
+            position: absolute;
+            padding: 4px;
+            color: #fff;
+            background: #0f0;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            top: 5px;
+            left: 5px;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+
+    <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+        <div class="uk-width-auto@m">
+            <ul class="uk-breadcrumb">
+                <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+                <li><a asp-action="WorkSample" asp-controller="Admin">نمونه‌کار</a></li>
+                <li><span>@ViewData["Title"]</span></li>
+            </ul>
+        </div>
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>آپلود</a>
+            <a class="uk-button uk-button-secondary uk-margin-right" asp-action="Service">
+                <span>بازگشت</span><i class="uk-margin-right fa fa-arrow-left"></i>
+            </a>
+        </div>
     </div>
-    <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>آپلود</a>
+    <div class="uk-grid-medium uk-child-width-1-2@s uk-child-width-1-4@m" uk-grid="masonry: true">
+        @foreach (var item in serviceWorkSamples)
+        {
+            string documentType = "";
+            switch (item.SampleType)
+            {
+                case (byte)WorkSampleType.Picture:
+                    {
+                        documentType += "pic";
+                    }
+                    break;
+                case (byte)WorkSampleType.Video:
+                    {
+                        documentType += "video";
+                    }
+                    break;
+                default:
+                    documentType += "doc";
+                    break;
+            }
+            @if (!string.IsNullOrEmpty(item.DocumentFile))
+            {
+                <div id="file-@item.WorkSampleId">
+                    <div class="box uk-position-relative" uk-lightbox>
+                        <span class="url" uk-icon="link" onclick="url('/img/workSample/@item.Title/@documentType-@item.DocumentFile')" uk-tooltip="title: آدرس تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        <span class="delete" uk-icon="close" onclick="remove(@item.WorkSampleId)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
+                        {
+                            <a href="~/img/workSample/@item.Title/pic-@item.DocumentFile">
+                                <img src="~/img/workSample/@item.Title/pic-@item.DocumentFile" />
+                            </a>
+                        }
+                        else if (item.SampleType.Equals((byte)WorkSampleType.Video))
+                        {
+                            //TODO Set Video source
+                            <video controls poster="/img/workSample/poster/poster.png">
+                                <source src="~/workSample/video/@item.Title/video-@item.DocumentFile" />
+                            </video>
+                        }
+                        else
+                        {
+                            //WorkSampleType is File
+                            //TODO Download/Upload File without admin
+                        }
+                    </div>
+                </div>
+            }
+        }
     </div>
-</div>
-<div class="uk-grid-medium uk-child-width-1-2@s uk-child-width-1-4@m" uk-grid="masonry: true">
-    @foreach (var item in data)
-    {
-        <div id="pic-@item.Id">
-            <div class="box uk-position-relative" uk-lightbox>
-                <span class="url" uk-icon="link" onclick="url('/img/upload/@item.Name@item.Type')" uk-tooltip="title: آدرس تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
-                <span class="delete" uk-icon="close" onclick="remove(@item.Id)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
-                <a href="/img/upload/@item.Name@item.Type">
-                    <img src="~/img/upload/@item.Name@item.Type" />
-                </a>
+    <div class="uk-text-center uk-width-1-1 uk-margin-top box" dir="ltr">
+        @Html.PagedListPager(data, page => Url.Action("Gallery", new { pageNumber = page, serviceId = serviceWorkSamples.Select(s => s.Service.ServiceId).FirstOrDefault() }))
+    </div>
+    <div id="create-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">آپلود تصویر جدید</h2>
+            </div>
+            <div class="uk-modal-body">
+                <div class="js-upload uk-placeholder uk-text-center uk-margin-remove" style="line-height: 30px;">
+                    <span class="uk-margin-small-left" uk-icon="icon: cloud-upload"></span>
+                    <span class="uk-text-middle">تصاویر را بکشید و در اینجا رها کنید یا </span>
+                    <div uk-form-custom>
+                        <input type="file" name="sampleFile" accept=".jpg,.png,.gif,.webp,mp4,docs,pdf" autocomplete="off">
+                        <span class="uk-link">انتخاب کنید.</span>
+                    </div>
+                </div>
+
+                <progress id="js-progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
             </div>
         </div>
-    }
-</div>
-<div class="uk-text-center uk-width-1-1 uk-margin-top box" dir="ltr">
-    @Html.PagedListPager(data, page => Url.Action("Gallery", new { pageNumber = page }))
-</div>
-<div id="create-modal" uk-modal>
-    <div class="uk-modal-dialog">
-        <div class="uk-modal-header uk-light">
-            <h2 class="uk-modal-title">آپلود تصویر جدید</h2>
+    </div>
+    <div id="delete-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="delete-form" method="post" asp-action="DeleteWorkSample" asp-controller="Admin">
+                <input type="hidden" name="workSampleId" />
+                <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+                <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="submitRemove()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
         </div>
-        <div class="uk-modal-body">
-            <div class="js-upload uk-placeholder uk-text-center uk-margin-remove" style="line-height: 30px;">
-                <span class="uk-margin-small-left" uk-icon="icon: cloud-upload"></span>
-                <span class="uk-text-middle">تصاویر را بکشید و در اینجا رها کنید یا </span>
-                <div uk-form-custom>
-                    <input type="file" name="images" accept=".jpg,.png,.gif,.webp" autocomplete="off" multiple>
-                    <span class="uk-link">انتخاب کنید.</span>
+    </div>
+    <div id="url-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <input class="uk-input uk-border-rounded uk-form-large" dir="ltr" />
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="copy()" type="button">کپی کردن آدرس</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
+
+
+}
+else
+{
+    @section Scripts{
+        <script>
+            var bar = document.getElementById('js-progressbar');
+
+            UIkit.upload('.js-upload', {
+
+                url: '/admin/gallery',
+                multiple: true,
+                name: 'images',
+                concurrent: 10,
+
+                beforeSend: function () {
+                    console.log('beforeSend', arguments);
+                },
+                beforeAll: function () {
+                    console.log('beforeAll', arguments);
+                },
+                load: function () {
+                    console.log('load', arguments);
+                },
+                error: function () {
+                    console.log('error', arguments);
+                },
+                complete: function () {
+                    console.log('complete', arguments);
+                },
+
+                loadStart: function (e) {
+                    console.log('loadStart', arguments);
+
+                    bar.removeAttribute('hidden');
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
+
+                progress: function (e) {
+                    console.log('progress', arguments);
+
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
+
+                loadEnd: function (e) {
+                    console.log('loadEnd', arguments);
+
+                    bar.max = e.total;
+                    bar.value = e.loaded;
+                },
+
+                completeAll: function () {
+                    console.log('completeAll', arguments);
+
+                    setTimeout(function () {
+                        bar.setAttribute('hidden', 'hidden');
+                    }, 2000);
+                    window.location.reload(true);
+                }
+
+            });
+            function remove(id) {
+                $('#delete-modal input').val(id);
+                UIkit.modal('#delete-modal').show();
+            }
+            function submitRemove() {
+                $('#preloader').fadeIn();
+                var id = $('#delete-form input').val();
+                $.post('/admin/delete-uploaded-file', { 'id': id }, function (r) {
+                    UIkit.modal('#delete-modal').hide();
+                    if (r.status == 'success') {
+                        $('#pic-' + id).fadeOut(150);
+                    }
+                    UIkit.notification({
+                        message: r.msg,
+                        status: r.status,
+                        pos: 'bottom-center',
+                        timeout: 5000
+                    });
+                }, 'json').then(function () {
+                    $('#preloader').fadeOut();
+                })
+            }
+            function url(u) {
+                $('#url-modal input').val(u);
+                UIkit.modal('#url-modal').show();
+            }
+            function copy() {
+                var i = $('#url-modal input').select();
+                document.execCommand("copy");
+                UIkit.notification({
+                    message: 'کپی شد.',
+                    status: 'primary',
+                    pos: 'top-center',
+                    timeout: 1000
+                });
+            }
+            $('.box.uk-position-relative').hover(function () {
+                $(this).find('.delete').fadeIn(150);
+                $(this).find('.url').fadeIn(150);
+            }, function () {
+                $(this).find('.delete').fadeOut(150);
+                $(this).find('.url').fadeOut(150);
+            });
+        </script>
+    }
+    <style>
+        .box .delete {
+            position: absolute;
+            padding: 4px;
+            color: #fff;
+            background: #f00;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .box .url {
+            position: absolute;
+            padding: 4px;
+            color: #fff;
+            background: #0f0;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            top: 5px;
+            left: 5px;
+            cursor: pointer;
+            display: none;
+        }
+    </style>
+
+    <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+        <div class="uk-width-auto@m">
+            <ul class="uk-breadcrumb">
+                <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+                <li><span>@ViewData["Title"]</span></li>
+            </ul>
+        </div>
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>آپلود</a>
+        </div>
+    </div>
+    <div class="uk-grid-medium uk-child-width-1-2@s uk-child-width-1-4@m" uk-grid="masonry: true">
+        @foreach (var item in data)
+        {
+            <div id="pic-@item.Id">
+                <div class="box uk-position-relative" uk-lightbox>
+                    <span class="url" uk-icon="link" onclick="url('/img/upload/@item.Name@item.Type')" uk-tooltip="title: آدرس تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    <span class="delete" uk-icon="close" onclick="remove(@item.Id)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                    <a href="/img/upload/@item.Name@item.Type">
+                        <img src="~/img/upload/@item.Name@item.Type" />
+                    </a>
                 </div>
             </div>
-
-            <progress id="js-progressbar" class="uk-progress" value="0" max="100" hidden></progress>
-        </div>
-        <div class="uk-modal-footer uk-text-center">
-            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
-        </div>
+        }
     </div>
-</div>
-<div id="delete-modal" class="uk-flex-top" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-form" method="post" asp-action="DeleteUploadedFile" asp-controller="Admin">
-            <input type="hidden" name="id" />
-            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
-            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
-            <div class="uk-modal-footer uk-text-center">
-                <button class="uk-button uk-button-primary" onclick="submitRemove()" type="button">بلی</button>
-                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+    <div class="uk-text-center uk-width-1-1 uk-margin-top box" dir="ltr">
+        @Html.PagedListPager(data, page => Url.Action("Gallery", new { pageNumber = page }))
+    </div>
+    <div id="create-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">آپلود تصویر جدید</h2>
             </div>
-        </form>
-    </div>
-</div>
-<div id="url-modal" class="uk-flex-top" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <input class="uk-input uk-border-rounded uk-form-large" dir="ltr" />
-        <div class="uk-modal-footer uk-text-center">
-            <button class="uk-button uk-button-primary" onclick="copy()" type="button">کپی کردن آدرس</button>
-            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            <div class="uk-modal-body">
+                <div class="js-upload uk-placeholder uk-text-center uk-margin-remove" style="line-height: 30px;">
+                    <span class="uk-margin-small-left" uk-icon="icon: cloud-upload"></span>
+                    <span class="uk-text-middle">تصاویر را بکشید و در اینجا رها کنید یا </span>
+                    <div uk-form-custom>
+                        <input type="file" name="images" accept=".jpg,.png,.gif,.webp" autocomplete="off" multiple>
+                        <span class="uk-link">انتخاب کنید.</span>
+                    </div>
+                </div>
+
+                <progress id="js-progressbar" class="uk-progress" value="0" max="100" hidden></progress>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
         </div>
     </div>
-</div>
+    <div id="delete-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="delete-form" method="post" asp-action="DeleteUploadedFile" asp-controller="Admin">
+                <input type="hidden" name="id" />
+                <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+                <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="submitRemove()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="url-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <input class="uk-input uk-border-rounded uk-form-large" dir="ltr" />
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="copy()" type="button">کپی کردن آدرس</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
+}
