@@ -1,0 +1,58 @@
+﻿
+@model Assist
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">نمایش فرم همکاری </h2>
+    </div>
+    <div class="uk-modal-body">
+        <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+            <div class="uk-width-1-4@s">
+                <div class="uk-position-relative">
+                    <span class="fas fa-user"></span>
+                    <label asp-for="FullName" class="uk-form-label"></label>
+                    <input asp-for="FullName" class="uk-input uk-border-rounded" disabled="disabled" />
+                </div>
+            </div>
+            <div class="uk-width-1-4@s">
+                <div class="uk-position-relative">
+                    <span class="fas fa-phone"></span>
+                    <label asp-for="PhoneNumber" class="uk-form-label"></label>
+                    <input asp-for="PhoneNumber" class="uk-input uk-border-rounded" disabled="disabled" />
+                </div>
+            </div>
+            <div class="uk-width-1-4@s">
+                <div class="uk-position-relative">
+                    <span class="fa fa-instagram"></span>
+                    <label asp-for="SocialId" class="uk-form-label"></label>
+                    <input asp-for="SocialId" class="uk-input uk-border-rounded" dir="ltr" disabled="disabled" />
+                </div>
+            </div>
+            <div class="uk-width-1-4@s">
+                <div class="uk-position-relative">
+                    <span class="fa fa-location-arrow"></span>
+                    <label asp-for="Location" class="uk-form-label"></label>
+                    <input asp-for="Location" class="uk-input uk-border-rounded" disabled="disabled" />
+                </div>
+            </div>
+            <div>
+                <hr />
+            </div>
+            @*<div class="uk-position-relative">
+                    <span class="fas fa-star"></span>
+                    <label asp-for="Degree" class="uk-form-label"></label>
+                    <input asp-for="Degree" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Degree" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-position-relative">
+                    <span class="fas fa-clone"></span>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 150px"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>*@
+        </div>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

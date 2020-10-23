@@ -165,7 +165,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary uk-margin-left" href="#create-modal" id="btn-Upload" uk-toggle>آپلود</a>
+        @*<a class="uk-button uk-button-primary uk-margin-left" href="#create-modal" id="btn-Upload" uk-toggle>آپلود</a>*@
         <a class="uk-button uk-button-primary" asp-action="CreateWorkSample" asp-controller="Admin">افزودن</a>
     </div>
 </div>
@@ -210,7 +210,6 @@
                     <th width="50">ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Title)</th>
                     <th>@Html.DisplayNameFor(model => model.Service.ServiceTitle)</th>
-                    <th>@Html.DisplayNameFor(model => model.SampleType)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
                     <th>@Html.DisplayNameFor(model => model.IsShow)</th>
                     <th width="50">
@@ -233,15 +232,14 @@
                             <a asp-action="Service">@Html.DisplayFor(modelItem => item.Service.ServiceTitle)</a>
                         </td>
                         <td>
-                            @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
-                            {<p class="uk-text-center uk-text-primary">تصویر</p>}
-                            else if (item.SampleType.Equals((byte)WorkSampleType.Video))
-                            {<p class="uk-text-center uk-text-primary">ویدئو</p>}
+                            @if (item.Status)
+                            {
+                                <p class="uk-text-center uk-text-success">فعال</p>
+                            }
                             else
-                            {<p class="uk-text-center uk-text-primary">فایل</p>}
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Status)
+                            {
+                                <p class="uk-text-center uk-text-danger">غیرفعال</p>
+                            }
                         </td>
                         <td>
                             @if (item.IsShow)
@@ -250,16 +248,14 @@
                             {<p class="uk-text-center uk-text-danger"><span class="uk-badge"><i class="" uk-icon="close"></i></span></p>}
                         </td>
                         <td>
-                            @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
-                            {
+                            @if (!string.IsNullOrEmpty(item.DocumentFile))
+                            {   @*<a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-video"></i></a>*@
                                 <a id="imgFile" class="uk-box-shadow-hover-large" asp-action="Gallery" asp-route-serviceId="@item.ServiceId">
-                                    <img src="~/img/workSample/@item.Title/pic-@item.DocumentFile" width="200" />
+                                    <img src="~/workSample/pic-@item.DocumentFile" width="200" />
                                 </a>
                             }
                             else
-                            {
-                                <a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@item.ServiceId"><i class="fas fa-video"></i></a>
-                            }
+                            {<p class="uk-text-center uk-text-warning">فایلی وجود ندارد</p>}
                         </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditWorkSample" asp-route-id="@item.WorkSampleId"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.WorkSampleId)"><i class="fas fa-trash-alt"></i></a></td>

@@ -92,7 +92,6 @@
                                             <tr>
                                                 <th width="50">ردیف</th>
                                                 <th>عنوان</th>
-                                                <th>نوع نمونه‌کار</th>
                                                 <th>وضعیت</th>
                                                 <th>نمایش در صفحه خدمات</th>
                                                 <th width="50">
@@ -110,18 +109,15 @@
                                                 <tr class="uk-text-center">
                                                     <td>@j</td>
                                                     <td>
-                                                        @Html.DisplayFor(modelItem => sample.Title)
+                                                        <a asp-action="EditWorkSample" asp-route-serviceId="@sample.ServiceId">
+                                                            @Html.DisplayFor(modelItem => sample.Title)
+                                                        </a>
                                                     </td>
                                                     <td>
-                                                        @if (sample.SampleType.Equals((byte)WorkSampleType.Picture))
-                                                        {<p class="uk-text-center uk-text-primary">تصویر</p>}
-                                                        else if (sample.SampleType.Equals((byte)WorkSampleType.Video))
-                                                        {<p class="uk-text-center uk-text-primary">ویدئو</p>}
+                                                        @if (sample.Status)
+                                                        {<p class="uk-text-center uk-text-success">فعال</p>}
                                                         else
-                                                        {<p class="uk-text-center uk-text-primary">فایل</p>}
-                                                    </td>
-                                                    <td>
-                                                        @Html.DisplayFor(modelItem => sample.Status)
+                                                        {<p class="uk-text-center uk-text-danger">غیرفعال</p>}
                                                     </td>
                                                     <td>
                                                         @if (sample.IsShow)
@@ -130,23 +126,15 @@
                                                         {<p class="uk-text-center uk-text-danger"><span class="uk-badge"><i class="" uk-icon="close"></i></span></p>}
                                                     </td>
                                                     <td>
-                                                        @if (sample.SampleType.Equals((byte)WorkSampleType.Picture))
+                                                        @if (!string.IsNullOrEmpty(sample.DocumentFile))
                                                         {
+                                                            @*<a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-video"></i></a>*@
                                                             <a id="imgFile" class="uk-box-shadow-hover-large" asp-action="Gallery" asp-route-serviceId="@item.ServiceId">
-                                                                <img src="~/img/workSample/@sample.Title/pic-@sample.DocumentFile" width="200" />
+                                                                <img src="~/workSample/pic-@sample.DocumentFile" width="200" />
                                                             </a>
                                                         }
                                                         else
-                                                        {
-                                                            if (!string.IsNullOrEmpty(sample.DocumentFile))
-                                                            {
-                                                                <a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-video"></i></a>
-                                                            }
-                                                            else
-                                                            {
-                                                                <p class="uk-text-center uk-text-warning">فایلی وجود ندارد</p>
-                                                            }
-                                                        }
+                                                        {<p class="uk-text-center uk-text-warning">فایلی وجود ندارد</p>}
                                                     </td>
                                                     <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CreateWorkSample" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-plus-circle"></i></a></td>
                                                     <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditWorkSample" asp-route-id="@sample.WorkSampleId"><i class="far fa-edit"></i></a></td>

@@ -14,18 +14,18 @@
     <script src="~/lib/select2/select2.full.min.js"></script>
     <script src="~/lib/ckeditor/ckeditor.js"></script>
     <script>
-        CKEDITOR.replace('LongContent', {
-            customConfig: '/lib/ckeditor/Config.js'
-        });
-        CKEDITOR.replace('Description', {
-            customConfig: '/lib/ckeditor/Config.js'
-        });
         $(document).ready(function () {
             $('#ServiceId').select2({ width: '100%' });
         });
-        $(document).ready(function () {
-            $('#sampType').select2({ width: '100%' });
-        });
+        CKEDITOR.replace('LongContent',
+            {
+                customConfig: '/lib/ckeditor/Config.js'
+            });
+        CKEDITOR.replace('Description',
+            {
+                customConfig: '/lib/ckeditor/Config.js'
+            });
+
         function submit() {
             if ($('#create-form').valid() == true) {
                 $('#create-form').submit();
@@ -38,21 +38,41 @@
                 UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
             }*@
         }
+
         function readURL(input) {
             if (input.files && input.files[0]) {
 
                 var reader = new FileReader();
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     $('#imgSample').attr('src', e.target.result);
                 }
                 reader.readAsDataURL(input.files[0]); // convert to base64 string
             }
         }
 
-        $("#sampleFile").change(function () {
+        $("#sampleFile").change(function() {
             readURL(this);
         });
+
+        function checkDupTitle(title) {
+            var t = title.val();
+            var workSampleTitle = $('input[name = "Title"] .field-validation-valid').val();
+            $('input[name = "Title"] .field-validation-valid').html('');
+            $.post('@Url.Action("CheckDuplicateTitle")', { 'workSampleTitle': workSampleTitle },
+                function(r) {
+                    if (r.status === "danger") {
+                        @*UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 5000 });*@
+                        $('input[name = "Title"] .field-validation-valid').show().html(r.msg);
+                    }
+                }, 'json');
+        }
     </script>
+    <style type="text/css">
+        .selected-service {
+            color: #39f !important;
+            border-bottom-color: #39f !important
+        }
+    </style>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
@@ -76,13 +96,12 @@
             <div class="box">
                 <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
                     <div class="uk-width-1-2@s">
-                        <span class="fa fa-phone"></span>
                         <label asp-for="ServiceId" class="uk-form-label">سرویس نمونه‌کار</label>
                         <select id="ServiceId" name="ServiceId" asp-for="ServiceId" class="uk-select uk-border-rounded">
                             <option value="0" selected="selected">لطفا یک سرویس برای نمونه‌کارتان انتخاب کنید...</option>
                             @foreach (var service in services)
                             {
-                                <!option value="@service.ServiceId" @if (ViewData["selectedCreateService"] != null) { <text> selected="selected" style="color: #39f; border-bottom-color: #39f" </text> }>
+                                <!option value="@service.ServiceId" @if (selectedCreateService.HasValue) { <text> selected="selected" class="selected-service" </text> }>
                                     @service.ServiceTitle
                                 </!option>
                             }
@@ -90,29 +109,24 @@
                         <span asp-validation-for="ServiceId" class="uk-text-danger"></span>
                     </div>
                     <div class="uk-width-1-2@s">
-                        <span class="fa fa-file"></span>
-                        <label asp-for="SampleType" class="uk-form-label"></label>
-                        <select id="sampType" name="sampType" class="uk-select uk-border-rounded">
-                            <option value="-1" selected="selected">لطفا نوع فایل ارسالی را انتخاب کنید...</option>
-                            <option value="0">ویدئو</option>
-                            <option value="1">عکس</option>
-                            <option value="2">فایل</option>
-                        </select>
-                        <span asp-validation-for="SampleType" class="uk-text-danger"></span>
+                        <div class="uk-position-relative">
+                            <label asp-for="SampleVideoLink" class="uk-form-label"></label>
+                            <input asp-for="SampleVideoLink" type="text" class="uk-input uk-border-rounded" placeholder="لینک آپارات نمونه‌کار...." />
+                            <span asp-validation-for="SampleVideoLink" class="uk-text-danger"></span>
+                        </div>
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
                             <label asp-for="Title" class="uk-form-label"></label>
-                            <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار" />
+                            <input asp-for="Title" class="uk-input uk-border-rounded" onfocus="checkDupTitle(this)" placeholder="عنوان نمونه‌کار...." />
                             <span asp-validation-for="Title" class="uk-text-danger"></span>
                         </div>
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
+                            @*<span class="fa fa-phone"></span>*@
                             <label asp-for="MetaTitle" class="uk-form-label"></label>
-                            <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار درسئو" />
+                            <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار درسئو...." />
                             <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
                         </div>
                     </div>
@@ -124,23 +138,15 @@
                 <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m">
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
-                            <label asp-for="Status" class="uk-form-label"></label>
-                            <select name="status" class="uk-select uk-border-rounded">
-                                <option value="-1" selected="selected">وضعیت نمونه‌کار ...</option>
-                                <option value="0">وضعیت1</option>
-                                <option value="1">وضعیت2</option>
-                                <option value="2">وضعیت3</option>
-                            </select>
-                            @*<input asp-for="Status" class="uk-input uk-border-rounded" placeholder="وضعیت نمونه‌کار" />*@
+                            <label class="uk-form-label">وضعیت فعال؟</label>
+                            <input asp-for="Status" class="uk-checkbox uk-border-rounded" />
                             <span asp-validation-for="Status" class="uk-text-danger"></span>
                         </div>
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
                             <label asp-for="IsShow" class="uk-form-label"></label>
-                            <input asp-for="IsShow" type="checkbox" class="uk-checkbox" />
+                            <input asp-for="IsShow" class="uk-checkbox uk-border-rounded" />
                             <span asp-validation-for="IsShow" class="uk-text-danger"></span>
                         </div>
                     </div>

@@ -1,0 +1,65 @@
+﻿
+@model Assist
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Assist>;
+    int p = data.PageNumber;
+    int s = data.PageSize;
+    int i = 1;
+    if (p > 1)
+    {
+        i = (s * p) - (s - 1);
+    }
+}
+@if (data.Any())
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayFor(model => model.FullName)</th>
+                    <th>@Html.DisplayFor(model => model.PhoneNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Location)</th>
+                    <th>@Html.DisplayNameFor(model => model.SocialId)</th>
+                    <th width="50">نمایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@item.FullName</td>
+                        <td>@item.PhoneNumber</td>
+                        <td>@item.Location</td>
+                        <td>@item.SocialId</td>
+                        <td><button onclick="showAssist(@item.AssistId)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        @*<td><button class="uk-button uk-button-primary uk-button-small" onclick="opration(@item.Id, '@item.Title')"><i class="fas fa-list-ul"></i></button></td>
+                            <td><a asp-action="EditProduct" asp-controller="Admin" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="far fa-edit"></i></a></td>*@
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Assist", new { pageNumber = page}))
+        </div>
+    }
+}
+else
+{
+    <div class="uk-margin-medium-top uk-margin-medium-bottom">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h2>نتیجه ای یافت نشد.</h2>
+            </div>
+        </div>
+    </div>
+}

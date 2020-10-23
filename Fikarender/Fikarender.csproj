@@ -11,6 +11,7 @@
     <Compile Remove="Data\MainSlider.cs" />
     <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.cs" />
     <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.Designer.cs" />
+    <Compile Remove="Helpers\SmsSender.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,8 +54,6 @@
   <ItemGroup>
     <Folder Include="wwwroot\img\service\" />
     <Folder Include="wwwroot\img\team\" />
-    <Folder Include="wwwroot\img\workSample\" />
-    <Folder Include="wwwroot\workSample\" />
   </ItemGroup>
 
 </Project>

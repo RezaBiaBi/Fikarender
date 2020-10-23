@@ -17,7 +17,7 @@ namespace Fikarender.Data
         public int AssistId { get; set; }
 
         [Required]
-        [Display(Name = "نام و نام‌خانوادگی")]
+        [Display(Name = "نام و نام ‌خانوادگی")]
         [StringLength(200, MinimumLength = 3)]
         public string FullName { get; set; }
 

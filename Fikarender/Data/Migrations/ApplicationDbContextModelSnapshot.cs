@@ -207,13 +207,11 @@ namespace Fikarender.Data.Migrations
 
                     b.Property<string>("Answer")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasMaxLength(2147483647);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Question")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasMaxLength(2147483647);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Sort")
                         .HasColumnType("int");
@@ -453,23 +451,22 @@ namespace Fikarender.Data.Migrations
 
                     b.Property<string>("LongContent")
                         .IsRequired()
-                        .HasColumnType("nvarchar(1024)")
-                        .HasMaxLength(1024);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MetaTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(200)")
                         .HasMaxLength(200);
 
-                    b.Property<byte>("SampleType")
-                        .HasColumnType("tinyint");
+                    b.Property<string>("SampleVideoLink")
+                        .HasColumnType("nvarchar(1024)")
+                        .HasMaxLength(1024);
 
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
-                    b.Property<byte>("Status")
-                        .HasColumnType("tinyint")
-                        .HasMaxLength(200);
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Title")
                         .IsRequired()

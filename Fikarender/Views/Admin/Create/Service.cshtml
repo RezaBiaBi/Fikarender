@@ -66,7 +66,6 @@
             <div class="box">
                 <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
                     <div class="uk-width-1-1">
-                        <span class="fa fa-phone"></span>
                         <label asp-for="ParentId" class="uk-form-label">سرویس والد</label>
                         <select asp-for="ParentId" class="uk-select uk-border-rounded">
                             <option value="0" selected="selected">لطفا یک والد برای سرویس انتخاب کنید...</option>
@@ -88,7 +87,6 @@
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
                             <label asp-for="ServiceTitle" class="uk-form-label"></label>
                             <input asp-for="ServiceTitle" class="uk-input uk-border-rounded" placeholder="عنوان سرویس" />
                             <span asp-validation-for="ServiceTitle" class="uk-text-danger"></span>
@@ -96,7 +94,6 @@
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <span class="fa fa-phone"></span>
                             <label asp-for="ServiceMetaTitle" class="uk-form-label"></label>
                             <input asp-for="ServiceMetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان سرویس در سئو" />
                             <span asp-validation-for="ServiceMetaTitle" class="uk-text-danger"></span>

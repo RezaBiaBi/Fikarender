@@ -34,11 +34,11 @@ namespace Fikarender.Data
         public bool IsShow { get; set; }
 
         [Display(Name = "وضعیت")]
-        public byte Status { get; set; }
+        public bool Status { get; set; }
 
-        [Display(Name = "نوع فایل")]
+        /*[Display(Name = "نوع فایل")]
         [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
-        public byte SampleType { get; set; }    
+        public byte SampleType { get; set; }  */  
 
         [Display(Name = "شرح نمونه‌کار")]
         [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
@@ -48,10 +48,14 @@ namespace Fikarender.Data
         [Display(Name = "فایل نمونه‌کار")]
         [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
         public string DocumentFile { get; set; }
+
+        [Display(Name = "لینک ویدئو نمونه‌کار")]
+        [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        public string SampleVideoLink { get; set; }
         
         [Display(Name = "محتوا")]
         [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [MaxLength(ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
         public string LongContent { get; set; } 
     }
 }

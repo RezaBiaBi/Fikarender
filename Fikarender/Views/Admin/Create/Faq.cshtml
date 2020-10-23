@@ -1,37 +1,65 @@
-﻿
-@model Faq
-
-<div class="uk-modal-dialog">
-    <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">افزودن سوال جدید</h2>
-    </div>
-    <div class="uk-modal-body">
-        <form id="create-form" asp-action="CreateFaq" asp-controller="Admin" enctype="multipart/form-data" method="post">
-            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
-            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div class="uk-width-1-1">
-                    <label asp-for="Question" class="uk-form-label"></label>
-                    <textarea asp-for="Question" class="uk-input uk-border-rounded"></textarea>
-                    <span asp-validation-for="Question" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-1">
-                    <label asp-for="Answer" class="uk-form-label"></label>
-                    <textarea asp-for="Answer" class="uk-input uk-border-rounded"></textarea>
-                    <span asp-validation-for="Answer" class="uk-text-danger"></span>
-                </div>
-                <div>
-                    <hr />
-                </div>
-                <div class="uk-width-1-1">
-                    <label asp-for="Sort" class="uk-form-label"></label>
-                    <input asp-for="Sort" type="text" class="uk-input uk-border-rounded"/>
-                    <span asp-validation-for="Sort" class="uk-text-danger"></span>
-                </div>
+﻿@model Faq
+@{
+    ViewData["pageId"] = 20;
+    ViewData["Title"] = "افزودن سوال";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    List<Tag> tags = (List<Tag>)ViewData["tags"];
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.full.min.js"></script>
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('Question', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        CKEDITOR.replace('Answer', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+        $(dociment).ready(function() {
+            $('#tags').select2({ width: '100%' });
+        });
+    </script>
+}
+<form id="create-form" asp-action="CreateFaq" asp-controller="Admin" method="post">
+    <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+        <div class="uk-width-1-1">
+            <label asp-for="Question" class="uk-form-label"></label>
+            <textarea asp-for="Question" class="uk-input uk-border-rounded"></textarea>
+            <span asp-validation-for="Question" class="uk-text-danger"></span>
+        </div>
+        <div class="uk-width-1-1">
+            <label asp-for="Answer" class="uk-form-label"></label>
+            <textarea asp-for="Answer" class="uk-input uk-border-rounded"></textarea>
+            <span asp-validation-for="Answer" class="uk-text-danger"></span>
+        </div>
+        <div>
+            <hr />
+        </div>
+        <div class="uk-width-1-1">
+            <label asp-for="Sort" class="uk-form-label"></label>
+            <input asp-for="Sort" type="number" class="uk-input uk-border-rounded" min="0" />
+            <span asp-validation-for="Sort" class="uk-text-danger"></span>
+        </div>
+        <div>
+            <div class="box">
+                <label class="uk-form-label">تگ ها</label>
+                <select id="tags" name="tags[]" class="uk-select uk-border-rounded">
+                    @foreach (var item in tags)
+                    {
+                        <option value="@item.TagId">@item.Name</option>
+                    }
+                </select>
             </div>
-        </form>
+        </div>
     </div>
-    <div class="uk-modal-footer uk-text-center">
-        <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit()">ثبت اطلاعات</button>
-        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
-    </div>
+</form>
+<div class="uk-text-center uk-margin-medium-top">
+    <button class="uk-button uk-button-primary" type="button" onclick="submit()">
+        <span>افزودن سوال</span><i class="fa fa-pencil-square-o" aria-hidden="false"></i>
+    </button>
 </div>

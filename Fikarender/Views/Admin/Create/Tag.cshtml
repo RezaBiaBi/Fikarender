@@ -35,7 +35,7 @@
                     <div>
                         <label asp-for="Type" class="uk-form-label"></label>
                         <select asp-for="Type" class="uk-select uk-border-rounded">
-                            <option value="@((byte)TagType.Faq)">مخصوص محصول</option>
+                            <option value="@((byte)TagType.Faq)">مخصوص (FAQ))</option>
                             <option value="@((byte)TagType.Blog)">مخصوص وبلاگ</option>
                         </select>
                         <span asp-validation-for="Type" class="uk-text-danger"></span>

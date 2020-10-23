@@ -6,13 +6,14 @@
     ViewData["Title"] = "گالری تصاویر";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var data = ViewBag.data as IPagedList<UploadedFile>;
+    string baseUrl = "https://" + Context.Request.Host;
 }
 @if (ViewData["serviceWorkSamples"] != null)
 {
     var workSamples = ViewBag.workSamples as IPagedList<UploadedFile>;
     List<WorkSample> serviceWorkSamples = (List<WorkSample>)ViewData["serviceWorkSamples"];
     int serviceId = serviceWorkSamples.Select(s => s.Service.ServiceId).FirstOrDefault();
-    ViewData["Title"] = $"گالری نمونه‌کار سرویس({serviceWorkSamples.Select(s => s.Service.ServiceTitle).FirstOrDefault()})";
+    ViewData["Title"] = $"گالری نمونه‌کار خدمت({serviceWorkSamples.Select(s => s.Service.ServiceTitle).FirstOrDefault()})";
 
     @section Scripts{
         <script>
@@ -72,6 +73,37 @@
                 }
 
             });
+
+            function download(workSampleId) {
+                $('#download-modal input').val(workSampleId);
+                UIkit.modal('#download-modal').show();
+            }
+            function submitDownload() {
+                $('#preloader').fadeIn(150);
+                $('#download-form').submit();
+                UIkit.modal('#download-modal').hide();
+                $('#preloader').fadeOut(100);
+            }
+            function submitDownloadFile() {
+                $('#preloader').fadeIn();
+                var workSampleId = $('#download-form input').val();
+                $.post('/admin/download-work-sample', { 'workSampleId': workSampleId },
+                    function(response) {
+                        UIkit.modal('#delete-modal').hide();
+                        if (response.status == 'success') {
+                            $('#file-' + id).fadeOut(150);
+                        }
+                        UIkit.notification({
+                            message: response.msg,
+                            status: response.status,
+                            pos: 'bottom-center',
+                            timeout: 5000
+                        });
+                    }, 'json').then(function() {
+                    $('#preloader').fadeOut();
+                });
+            }
+
             function remove(id) {
                 $('#delete-modal input').val(id);
                 UIkit.modal('#delete-modal').show();
@@ -82,7 +114,7 @@
                 $.post('/admin/delete-work-sample', { 'workSampleId': workSampleId }, function (r) {
                     UIkit.modal('#delete-modal').hide();
                     if (r.status == 'success') {
-                        $('#file-' + id).fadeOut(150);
+                        $('#pic-' + id).fadeOut(150);
                     }
                     UIkit.notification({
                         message: r.msg,
@@ -111,9 +143,11 @@
             $('.box.uk-position-relative').hover(function () {
                 $(this).find('.delete').fadeIn(150);
                 $(this).find('.url').fadeIn(150);
+                $(this).find('.download').fadeIn(150);
             }, function () {
                 $(this).find('.delete').fadeOut(150);
                 $(this).find('.url').fadeOut(150);
+                $(this).find('.download').fadeOut(150);
             });
         </script>
     }
@@ -129,6 +163,7 @@
             right: 5px;
             cursor: pointer;
             display: none;
+            z-index: 99999999;
         }
 
         .box .url {
@@ -142,9 +177,42 @@
             left: 5px;
             cursor: pointer;
             display: none;
+            z-index: 99999999;
         }
-    </style>
 
+        .box .download {
+            position: absolute;
+            padding: 4px;
+            color: #fff;
+            background: gray;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            top: 5px;
+            left: 43%;
+            cursor: pointer;
+            display: none;
+            z-index: 99999999;
+        }
+
+        @*aparat iframe style*@
+        .h_iframe-aparat_embed_frame {
+            position: relative;
+        }
+
+            .h_iframe-aparat_embed_frame .ratio {
+                display: block;
+                width: 100%;
+                height: auto;
+            }
+
+            .h_iframe-aparat_embed_frame iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+    </style>
     <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
         <div class="uk-width-auto@m">
             <ul class="uk-breadcrumb">
@@ -163,47 +231,30 @@
     <div class="uk-grid-medium uk-child-width-1-2@s uk-child-width-1-4@m" uk-grid="masonry: true">
         @foreach (var item in serviceWorkSamples)
         {
-            string documentType = "";
-            switch (item.SampleType)
-            {
-                case (byte)WorkSampleType.Picture:
-                    {
-                        documentType += "pic";
-                    }
-                    break;
-                case (byte)WorkSampleType.Video:
-                    {
-                        documentType += "video";
-                    }
-                    break;
-                default:
-                    documentType += "doc";
-                    break;
-            }
+            string documentType = "pic";
             @if (!string.IsNullOrEmpty(item.DocumentFile))
             {
-                <div id="file-@item.WorkSampleId">
-                    <div class="box uk-position-relative" uk-lightbox>
-                        <span class="url" uk-icon="link" onclick="url('/img/workSample/@item.Title/@documentType-@item.DocumentFile')" uk-tooltip="title: آدرس تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
-                        <span class="delete" uk-icon="close" onclick="remove(@item.WorkSampleId)" uk-tooltip="title: حذف تصویر; delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
-                        @if (item.SampleType.Equals((byte)WorkSampleType.Picture))
-                        {
-                            <a href="~/img/workSample/@item.Title/pic-@item.DocumentFile">
-                                <img src="~/img/workSample/@item.Title/pic-@item.DocumentFile" />
-                            </a>
-                        }
-                        else if (item.SampleType.Equals((byte)WorkSampleType.Video))
-                        {
-                            //TODO Set Video source
-                            <video controls poster="/img/workSample/poster/poster.png">
-                                <source src="~/workSample/video/@item.Title/video-@item.DocumentFile" />
-                            </video>
-                        }
-                        else
-                        {
-                            //WorkSampleType is File
-                            //TODO Download/Upload File without admin
-                        }
+                <div id="pic-@item.WorkSampleId">
+                    <div class="box uk-position-relative" uk-lightbox uk-tooltip="title: @item.Title | @documentType; delay: 200; uk-animation-scale-up; duration: 300">
+                        <span class="url" uk-icon="link" onclick="url('@baseUrl/workSample/@documentType-@item.DocumentFile')" uk-tooltip="title: آدرس @((documentType)); delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        <span class="download" uk-icon="icon: download; ratio: 1.5" onclick="download(@item.WorkSampleId)" uk-tooltip="title: دانلود @((documentType)); delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        <span class="delete" uk-icon="close" onclick="remove(@item.WorkSampleId)" uk-tooltip="title: حذف @((documentType)); delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        <a href="~/worksample/pic-@item.DocumentFile">
+                            <img src="~/worksample/pic-@item.DocumentFile" alt="@item.Title" />
+                        </a>
+                    </div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(item.SampleVideoLink))
+            {
+                documentType = "video-aparat";
+                <div id="video-@item.WorkSampleId">
+                    <div class="box uk-position-relative" uk-lightbox uk-tooltip="title: @item.Title | @documentType; delay: 200; uk-animation-scale-up; duration: 300">
+                        <span class="url" uk-icon="link" onclick="url('@item.SampleVideoLink')" uk-tooltip="title: آدرس @((documentType)); delay: 200; animation: uk-animation-scale-up; duration: 300"></span>
+                        <div class="h_iframe-aparat_embed_frame">
+                            <span style="display: block; padding-top: 57%"></span>
+                            <iframe src="@item.SampleVideoLink" allowFullScreen="true" webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+                        </div>
                     </div>
                 </div>
             }
@@ -256,8 +307,18 @@
             </div>
         </div>
     </div>
-
-
+    <div id="download-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="download-form" method="post" asp-action="DownloadWorkSample" asp-controller="Admin">
+                <input type="hidden" name="workSampleId" />
+                <h3>آیا از دانلود این فایل اطمینان دارید؟</h3>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="submitDownload()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
+        </div>
+    </div>
 }
 else
 {
@@ -447,6 +508,19 @@ else
         <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
             <form id="delete-form" method="post" asp-action="DeleteUploadedFile" asp-controller="Admin">
                 <input type="hidden" name="id" />
+                <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+                <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="submitRemove()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="download-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="download-form" method="post" asp-action="DownloadWorkSample" asp-controller="Admin">
+                <input type="hidden" name="workSampleId" />
                 <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
                 <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
                 <div class="uk-modal-footer uk-text-center">

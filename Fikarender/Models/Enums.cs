@@ -4,7 +4,6 @@
     {
         Blog,
         Service,
-        Faq,
         WorkSample
     }
     

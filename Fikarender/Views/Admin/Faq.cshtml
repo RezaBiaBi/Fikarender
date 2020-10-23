@@ -29,7 +29,7 @@
         CKEDITOR.replace('Answer', {
             customConfig: '/lib/ckeditor/Config.js'
         });
-        function edit(id) {
+        @*function edit(id) {
             preloader();
             $.get('@Url.Action("EditFaq")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
@@ -40,25 +40,11 @@
                     preloader();
                 }, 200);
             })
-        }
+        }*@
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
         }
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#imgTeam').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(input.files[0]); // convert to base64 string
-            }
-        }
-
-        $("#avatarImage").change(function () {
-            readURL(this);
-        });
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -69,7 +55,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" href="#create-modal" uk-toggle>افزودن</a>
+        <a class="uk-button uk-button-secondary uk-margin-right" asp-action="CreateFaq">افزودن</a>
     </div>
 </div>
 <div id="append" class="box">
@@ -89,9 +75,13 @@
                     <tr class="uk-text-center">
                         <td>@i</td>
                         <td>
-                            @Html.Raw(Html.DisplayFor(modelItem => item.Question))
+                            @Html.Raw(item.Question)
                         </td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.FaqId)"><i class="far fa-edit"></i></a></td>
+                        <td>
+                            <a class="uk-button uk-button-primary uk-button-small" asp-action="EditFaq" asp-route-id="@item.FaqId">
+                                <i class="far fa-edit"></i>
+                            </a>
+                        </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.FaqId)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     i++;
@@ -119,11 +109,9 @@
         </form>
     </div>
 </div>
-<div id="edit-modal" class="uk-modal-container" uk-modal></div>
-@{ Faq model = new Faq(); }
+<!--<div id="edit-modal" class="uk-modal-container" uk-modal></div>
+
 <div id="create-modal" class="uk-modal-container" uk-modal>
-    <partial name="~/Views/Admin/Create/Faq.cshtml" model="model" view-data="ViewData" />
-</div>
-
-
-
+    <partial name="~/Views/Admin/Create/Faq.cshtml" model="" view-data="ViewData" />-->
+@*<partial name="~/Views/Admin/Create/Faq.cshtml" model="model" view-data='@new ViewDataDictionary(ViewData) { { "tags", (List<Tag>)ViewData["tags"] } }' />*@
+<!--</div>-->
