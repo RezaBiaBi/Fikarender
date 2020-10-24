@@ -51,7 +51,10 @@
                         <td>@item.FullName</td>
                         <td>@item.PhoneNumber</td>
                         <td>@item.Location</td>
-                        <td class="uk-text-primary" dir="ltr">@item.SocialId</td>
+                        <td class="uk-text-primary" dir="ltr">
+                            @{ var socialId = item.SocialId.Split("@").Last();}
+                            <a href="https://instagram.com/@socialId?igshid=1adb9i6196gwh">@item.SocialId</a>
+                        </td>
                         <td><button onclick="showAssist(@item.AssistId)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-eye"></i></button></td>
                         @*<td><button class="uk-button uk-button-primary uk-button-small" onclick="opration(@item.Id, '@item.Title')"><i class="fas fa-list-ul"></i></button></td>
                             <td><a asp-action="EditProduct" asp-controller="Admin" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="far fa-edit"></i></a></td>*@

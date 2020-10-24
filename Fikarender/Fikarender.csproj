@@ -52,6 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\assist\cvFiles\" />
     <Folder Include="wwwroot\img\service\" />
     <Folder Include="wwwroot\img\team\" />
   </ItemGroup>

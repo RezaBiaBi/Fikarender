@@ -783,15 +783,9 @@ namespace Fikarender.Controllers
         [HttpPost]
         public async Task<JsonResult> CheckDuplicateTitle(string workSampleTitle)
         {
-            if (await db.WorkSamples.AnyAsync(w => w.Title.Contains(workSampleTitle)))
-            {
-                return Json(new { status = "danger", msg = "عنوان نمونه‌کار نمیتواند تکراری باشد" });
-            }
-
-            return Json(false);
+            return Json(await db.WorkSamples.AnyAsync(w => w.Title.Equals(workSampleTitle)));
         }
 
-        //TODO Design workSample view (video player & imagesGallery) and set status,isRead Fields
         [HttpGet]
         public async Task<IActionResult> WorkSample(int? pageNumber)
         {
@@ -930,11 +924,11 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditWorkSample(int? id)//TODO Handle This Section
+        public async Task<IActionResult> EditWorkSample(int? workSampleId)//TODO Handle This Section
         {
-            if (!id.HasValue) return NotFound();
+            if (!workSampleId.HasValue) return NotFound();
 
-            var workSample = await db.WorkSamples.FindAsync(id.Value);
+            var workSample = await db.WorkSamples.FindAsync(workSampleId.Value);
             ViewData["currentService"] = workSample.ServiceId;
             ViewData["oldDocument"] = workSample.DocumentFile;
             ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
@@ -1205,7 +1199,7 @@ namespace Fikarender.Controllers
             string downloadFilePath = Path.Combine(_environment.WebRootPath, "worksample\\", $"pic-" + workSampleDownload.DocumentFile);
             string downloadFileName = workSampleDownload.DocumentFile;
 
-            byte[] downloadFile = System.IO.File.ReadAllBytes(downloadFilePath);
+            byte[] downloadFile = await System.IO.File.ReadAllBytesAsync(downloadFilePath);
             return File(downloadFile, "application/force-download", downloadFileName);
 
             #endregion
@@ -1343,7 +1337,7 @@ namespace Fikarender.Controllers
 
         #endregion
 
-        //TODO Design FrontEnd
+        //TODO Design FrontEnd(showAssist enother section)
         #region Assist
 
         [HttpGet]
@@ -1401,6 +1395,30 @@ namespace Fikarender.Controllers
             var onePageOfData = await data.OrderByDescending(a => a.AssistId).ToPagedListAsync(pageNum, 15);
             ViewBag.data = onePageOfData;
             return PartialView("_Assist");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DownloadCvFile(int assistId)
+        {
+            var cvFileDownload = await db.Assists.FindAsync(assistId);
+
+            #region download File
+
+            if (Directory.Exists(Path.Combine(_environment.WebRootPath, "assist\\cvFiles", $"cv-" + cvFileDownload.CvFileName)))
+            {
+                string downloadFilePath = Path.Combine(_environment.WebRootPath, "assist\\cvFiles", $"cv-" + cvFileDownload.CvFileName);
+                string downloadFileName = cvFileDownload.CvFileName;
+
+                if (!string.IsNullOrEmpty(downloadFilePath))
+                {
+                    byte[] downloadFile = await System.IO.File.ReadAllBytesAsync(downloadFilePath);
+                    return File(downloadFile, "application/force-download", downloadFileName);
+                }
+            }
+
+            #endregion
+
+            return Json(false);
         }
 
         #endregion

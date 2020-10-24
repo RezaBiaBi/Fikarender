@@ -9,70 +9,17 @@
 }
 @section Links{
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
-}
-@section Scripts {
-    <script src="~/lib/select2/select2.full.min.js"></script>
-    <script src="~/lib/ckeditor/ckeditor.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('#ServiceId').select2({ width: '100%' });
-        });
-        CKEDITOR.replace('LongContent',
-            {
-                customConfig: '/lib/ckeditor/Config.js'
-            });
-        CKEDITOR.replace('Description',
-            {
-                customConfig: '/lib/ckeditor/Config.js'
-            });
-
-        function submit() {
-            if ($('#create-form').valid() == true) {
-                $('#create-form').submit();
-            }
-            @*if ($('#ParentId').val() >= 0) {
-                if ($('#edit-form').valid() == true) {
-                    $('#edit-form').submit();
-                }
-            } else {
-                UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
-            }*@
-        }
-
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#imgSample').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(input.files[0]); // convert to base64 string
-            }
-        }
-
-        $("#sampleFile").change(function() {
-            readURL(this);
-        });
-
-        function checkDupTitle(title) {
-            var t = title.val();
-            var workSampleTitle = $('input[name = "Title"] .field-validation-valid').val();
-            $('input[name = "Title"] .field-validation-valid').html('');
-            $.post('@Url.Action("CheckDuplicateTitle")', { 'workSampleTitle': workSampleTitle },
-                function(r) {
-                    if (r.status === "danger") {
-                        @*UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 5000 });*@
-                        $('input[name = "Title"] .field-validation-valid').show().html(r.msg);
-                    }
-                }, 'json');
-        }
-    </script>
     <style type="text/css">
         .selected-service {
             color: #39f !important;
             border-bottom-color: #39f !important
         }
     </style>
+}
+@section Scripts {
+    <script src="~/lib/select2/select2.full.min.js"></script>
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script src="~/js/admin-worksample.js" asp-append-version="true"></script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
@@ -117,9 +64,9 @@
                     </div>
                     <div class="uk-width-1-2@s">
                         <div class="uk-position-relative">
-                            <label asp-for="Title" class="uk-form-label"></label>
-                            <input asp-for="Title" class="uk-input uk-border-rounded" onfocus="checkDupTitle(this)" placeholder="عنوان نمونه‌کار...." />
-                            <span asp-validation-for="Title" class="uk-text-danger"></span>
+                            <label asp-for="Title" id="titleLabel" class="uk-form-label"></label>
+                            <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار...." />
+                            <span asp-validation-for="Title" id="titleValidate" class="uk-text-danger"></span>
                         </div>
                     </div>
                     <div class="uk-width-1-2@s">

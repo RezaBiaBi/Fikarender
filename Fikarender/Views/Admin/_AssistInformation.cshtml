@@ -1,9 +1,63 @@
 ﻿
 @model Assist
+<style>
+    .specialty {
+        margin: 10px auto;
+        box-sizing: border-box;
+        margin-right: 15px;
+    }
 
+    .special-info {
+        background: white;
+        padding: 5px;
+        box-sizing: border-box;
+        border-right: 3.6px solid #51059d47;
+    }
+
+    .special-other {
+        background: #8100da1f;
+        border: 1.5px solid #51059d47;
+        padding: 5px;
+        border-radius: 4px;
+        border-top-width: 5px;
+        box-sizing: border-box;
+    }
+    .uk-accordion-title{ font-size: 17.5px !important }
+    .uk-accordion-title::before {
+        content: "";
+        width: 1.4em;
+        height: 1.4em;
+        margin-right: 10px;
+        float: left;
+        background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Cpolyline%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.1%22%20points%3D%2210%201%204%207%2010%2013%22%20%2F%3E%0A%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+    }
+
+    .uk-open > .uk-accordion-title::before {
+        content: "";
+        width: 1.4em;
+        height: 1.4em;
+        margin-right: 10px;
+        float: left;
+        background-image: url('data: image/svg+xml;charset =UTF-8,%3Csvg%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Cpolyline%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.1%22%20points%3D%221%204%207%2010%2013%204%22%20%2F%3E%0A%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+    }
+    .uk-accordion-title::after {
+        content: "";
+        width: 1.4em;
+        height: 1.4em;
+        margin-right: 10px;
+        float: right;
+        background-image: url('data: image/svg+xml;charset =UTF-8,%3Csvg%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Cpolyline%20fill%3D%22none%22%20stroke%3D%22%23666%22%20stroke-width%3D%221.1%22%20points%3D%221%204%207%2010%2013%204%22%20%2F%3E%0A%3C%2Fsvg%3E');
+        background-repeat: no-repeat;
+        background-position: 50% 50%;
+    }
+</style>
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">نمایش فرم همکاری </h2>
+        <h2 class="uk-modal-title"><span class="fas fa-file"></span> نمایش فرم همکاری | <span><i class="fas fa-user"></i>  @Model.FullName</span> </h2>
     </div>
     <div class="uk-modal-body">
         <div class="uk-grid-small uk-child-width-1-1" uk-grid>
@@ -36,23 +90,133 @@
                 </div>
             </div>
             <div>
-                <hr />
+                <hr class="uk-divider-icon">
             </div>
-            @*<div class="uk-position-relative">
-                    <span class="fas fa-star"></span>
-                    <label asp-for="Degree" class="uk-form-label"></label>
-                    <input asp-for="Degree" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="Degree" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-position-relative">
-                    <span class="fas fa-clone"></span>
-                    <label asp-for="Description" class="uk-form-label"></label>
-                    <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 150px"></textarea>
-                    <span asp-validation-for="Description" class="uk-text-danger"></span>
-                </div>*@
+            <div id="" dir="rtl">
+                <ul id="special-section" uk-accordion="multiple: true">
+                    <li class="box specialty uk-background-muted uk-border-rounded uk-box-shadow-hover-medium uk-box-shadow-small uk-padding sm uk-margin-remove-right@s">
+                        <a class="uk-accordion-title" href="#">تخصص‌ها </a>
+                        <div class="uk-accordion-content">
+                            <div class="uk-grid-divider uk-child-width-expand@s" uk-grid>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Animate ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Animate)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.ContentAuthor ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.ContentAuthor)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.EditingVideo ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.EditingVideo)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.MotionGraphic ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.MotionGraphic)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Photography ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Photography)</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <hr class="uk-divider-icon uk-margin-small-top">
+                            </div>
+                            <div class="uk-grid-divider uk-child-width-expand@s" uk-grid>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Filming ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Filming)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Modeling3D ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Modeling3D)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Graphic ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Graphic)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Logo ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Logo)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.StopMotion ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.StopMotion)</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div><hr class="uk-divider-icon uk-margin-small-top"></div>
+                            <div class="uk-grid-divider uk-child-width-expand@s" uk-grid>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Ui ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Ui)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.Ux ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.Ux)</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="special-info">
+                                        <!span class="fas fa-check uk-text-center @((Model.DigitalIllustrator ? "uk-text-success" : "uk-text-danger"))"></!span>
+                                        <span>@Html.DisplayNameFor(model => model.DigitalIllustrator)</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="box specialty uk-background-muted uk-border-rounded uk-box-shadow-hover-medium uk-box-shadow-small uk-padding sm uk-margin-remove-right@s">
+                        <a class="uk-accordion-title" href="#">سایر تخصص‌ها و دانلود رزومه</a>
+                        <div class="uk-accordion-content">
+                            <div class="uk-grid-divider uk-child-width-expand@s" uk-grid>
+                                <div>
+                                    <p class="special-other ">@Model.OtherSpecialty</p>
+                                </div>
+                            </div>
+                            <div><hr class="uk-divider-icon uk-margin-small-top"></div>
+                            <div class="uk-grid-divider uk-child-width-expand@s uk-margin-remove-right" uk-grid>
+                                <div class="uk-alert-warning" uk-alert>
+                                    @*<a class="uk-alert-close" uk-close></a>*@
+                                <h3 class="uk-text-center"><i class="fa fa-file" aria-hidden="true"></i> فایل رزومه</h3>
+                                <div class="uk-text-center uk-margin-medium-top">
+                                    <form id="download-form" asp-action="DownloadCvFile" role="form" method="post">
+                                        <input type="hidden" name="assistId" value="@Model.AssistId" />
+                                        <button class="uk-button uk-button-primary" type="button" onclick="downloadCvFile()">
+                                            <i class="fa fa-download" aria-hidden="true"></i> <span> دانلود فایل رزومه</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
-    <div class="uk-modal-footer uk-text-center">
-        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
-    </div>
+</div>
+<div class="uk-modal-footer uk-text-center">
+    <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+</div>
 </div>

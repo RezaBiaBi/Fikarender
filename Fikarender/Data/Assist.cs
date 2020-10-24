@@ -33,7 +33,7 @@ namespace Fikarender.Data
         [MaxLength(400, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
         public string SocialId { get; set; }
 
-        [Display(Name = "تلفن ثابت")]
+        [Display(Name = "تلفن همراه")]
         [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
         [StringLength(11, MinimumLength = 11, ErrorMessage = "{0} باید {1} رقم باشد.")]
         public string PhoneNumber { get; set; }
@@ -72,6 +72,5 @@ namespace Fikarender.Data
         [Display(Name = "فایل رزومه")]
         [Required]
         public string CvFileName { get; set; }
-
     }
 }
