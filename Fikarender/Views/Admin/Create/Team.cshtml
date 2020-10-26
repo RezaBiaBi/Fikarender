@@ -12,7 +12,7 @@
         font-size: 20px
     }
 </style>
-<script type="text/javascript">
+<script type="text/javascript"> 
     function readURL(input) {
         if (input.files && input.files[0]) {
 
@@ -27,6 +27,7 @@
     $("#avatarImage").change(function () {
         readURL(this);
     });
+    @*CKEDITOR.replace('CreateDescription', { customConfig: '/lib/ckeditor/Config.js' });*@
 </script>
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -68,7 +69,7 @@
                 <div class="uk-position-relative">
                     <span class="fas fa-clone"></span>
                     <label asp-for="Description" class="uk-form-label"></label>
-                    <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 150px"></textarea>
+                    <textarea asp-for="Description" id="CreateDescription" class="uk-input uk-border-rounded" style="min-height: 150px"></textarea>
                     <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
                 <div>
@@ -107,7 +108,7 @@
                     </div>
                     <div uk-form-custom="target: true">
                         <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
-                        <input id="avatarImage" name="avatarImage" accept=".png,.jpg" type="file" aria-invalid="true">
+                        <input id="avatarImage" name="avatarImage" accept=".png,.jpg,.jpeg" type="file" aria-invalid="true">
                         <input class="uk-input uk-form-width-large uk-border-rounded" type="text" placeholder="انتخاب کنید ..." disabled>
                     </div>
                 </div>

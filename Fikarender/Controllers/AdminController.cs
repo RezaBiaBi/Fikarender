@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using ResizeImageASPNETCore;
 using X.PagedList;
 
@@ -415,13 +416,32 @@ namespace Fikarender.Controllers
                 {
                     if (avatarImage.Length <= 512000)//TODO Change size file
                     {
-                        if (avatarImage.ContentType == "image/jpeg" || avatarImage.ContentType == "image/png")
+                        string[] validImageTypes = {"image/jpeg", "image/jpg", "image/png"};
+                        if (validImageTypes.Contains(avatarImage.ContentType))
                         {
-                            var oldPic = Path.Combine(_environment.WebRootPath, "img\\team", team.Avatar);
+                            #region Delete Old ImageFile
 
-                            string name = Path.GetRandomFileName();
-                            string ext = Path.GetExtension(avatarImage.FileName).ToLower();
-                            var fileName = name + ext;
+                            var oldPic = Path.Combine(_environment.WebRootPath, "img\\team", team.Avatar);
+                            if (System.IO.File.Exists(oldPic))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(oldPic);
+                                }
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                    return RedirectToAction("Team");
+                                }
+                            }
+                            else
+                            {
+                                TempData["msg"] = $"عکس آواتار قبلی شما پیدانشد |danger";
+                            }
+
+                            #endregion
+
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(avatarImage.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\team", fileName);
                             await using (var stream = new FileStream(path, FileMode.Create))
                             {
@@ -451,18 +471,6 @@ namespace Fikarender.Controllers
                             try
                             {
                                 await db.SaveChangesAsync();
-                                if (System.IO.File.Exists(oldPic))
-                                {
-                                    try
-                                    {
-                                        System.IO.File.Delete(oldPic);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                                        return RedirectToAction("Team");
-                                    }
-                                }
                                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                             }
                             catch (Exception e)
@@ -534,7 +542,7 @@ namespace Fikarender.Controllers
         #region Services
 
         [HttpGet]
-        public async Task<IActionResult> ServiceSamples(int serviceId)//TODO Handle this sections
+        public async Task<IActionResult> ServiceSamples(int serviceId)
         {
             var workSamples = await db.WorkSamples.Where(w => w.ServiceId.Equals(serviceId)).ToListAsync();
             return RedirectToAction("Assist", new { workSamples = workSamples });
@@ -798,7 +806,7 @@ namespace Fikarender.Controllers
         }
         
         [HttpGet]
-        public async Task<IActionResult> CreateWorkSample(int? serviceId)//TODO Handle this sections 
+        public async Task<IActionResult> CreateWorkSample(int? serviceId)
         {
             var services = await db.Services.ToListAsync();
             if (serviceId.HasValue) ViewData["selectedCreateService"] = db.Services.FindAsync(serviceId.Value).Result.ServiceId;
@@ -924,33 +932,33 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditWorkSample(int? workSampleId)//TODO Handle This Section
+        public async Task<IActionResult> EditWorkSample(int? workSampleId)
         {
             if (!workSampleId.HasValue) return NotFound();
 
             var workSample = await db.WorkSamples.FindAsync(workSampleId.Value);
+            var workSamplesIsShow = await db.WorkSamples.AnyAsync(a => a.IsShow && a.WorkSampleId.Equals(workSampleId));
+            if (workSamplesIsShow) ViewData["workSampleIsShow"] = true;
             ViewData["currentService"] = workSample.ServiceId;
-            ViewData["oldDocument"] = workSample.DocumentFile;
             ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
 
-            return PartialView("~/Views/Admin/Edit/WorkSample.cshtml", workSample);
+            return View("~/Views/Admin/Edit/WorkSample.cshtml", workSample);
         }
         
         [HttpPost]
-        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType)//TODO Handle This Section
+        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, string workSampleIsShow)//TODO Handle This Section
         {
             if (workSample.IsShow)
             {
                 if (sampType.Equals(-1)) return View("Edit/WorkSample", workSample);
                 if (workSample.ServiceId.Equals(0)) return View("Edit/WorkSample", workSample);
 
-                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() >= 3)
+                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() >= 3 && Convert.ToBoolean(workSampleIsShow).Equals(false))
                 {
                     TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
-                    return RedirectToAction("EditWorkSample", new { serviceId = workSample.ServiceId });
+                    return RedirectToAction("EditWorkSample", new { workSampleId = workSample.WorkSampleId });
                 }
             }
-
             /*if (Status.Equals(1)) workSample.Status = true;
             else if (Status.Equals(0)) workSample.Status = false;*/
 
@@ -958,13 +966,7 @@ namespace Fikarender.Controllers
             {
                 if (sampleFile != null)
                 {
-                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "worksample\\")))
-                    {
-                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "worksample\\"));
-                    }
-
-                    
-                    if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
+                    if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/jpg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
                     {
                         #region Delete Old ImageFile
 
@@ -1337,12 +1339,20 @@ namespace Fikarender.Controllers
 
         #endregion
 
-        //TODO Design FrontEnd(showAssist enother section)
         #region Assist
 
         [HttpGet]
-        public async Task<IActionResult> Assist(int? pageNumber, int? assistId)
+        public async Task<IActionResult> Assist(int? pageNumber, int? assistId, bool? isErrorDownload = false)
         {
+            
+            string requestPath = HttpContext.Request.Path.Value.ToLower();
+            if (HttpContext.Request.Query["isErrorDownload"].ToString().Equals("True") && requestPath.StartsWith("/admin/assist"))
+            {
+                if (isErrorDownload.HasValue && isErrorDownload.Value.Equals(true))
+                    ViewData["isErrorDownload"] = isErrorDownload;
+                else ViewData["isErrorDownload"] = false;
+            }
+            
             if (Request.IsAjaxRequest() && assistId.HasValue)
             {
                 var assistInformation = await db.Assists.FindAsync(assistId);
@@ -1415,10 +1425,14 @@ namespace Fikarender.Controllers
                     return File(downloadFile, "application/force-download", downloadFileName);
                 }
             }
+            else
+            {
+                return RedirectToAction("Assist", new { isErrorDownload = true });
+            }
 
             #endregion
 
-            return Json(false);
+            return BadRequest();
         }
 
         #endregion

@@ -16,6 +16,7 @@
 }
 @section Scripts{
     <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
     <script>
         function edit(id) {
             preloader();
@@ -43,7 +44,6 @@
                 reader.readAsDataURL(input.files[0]); // convert to base64 string
             }
         }
-
         $("#avatarImage").change(function () {
             readURL(this);
         });
@@ -84,7 +84,7 @@
                             @Html.DisplayFor(modelItem => item.FullName)
                         </td>
                         <td>
-                            <img src="~/img/team/@item.Avatar" width="60"/>
+                            <img src="~/img/team/@item.Avatar" width="60" />
                         </td>
                         <td>
                             @Html.DisplayFor(modelItem => item.Degree)

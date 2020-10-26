@@ -2,7 +2,6 @@
 @model Assist
 @using X.PagedList
 @using X.PagedList.Mvc.Core
-
 @{
     ViewData["pageId"] = 11;
     ViewData["Title"] = "لیست همکاری با ما";
@@ -14,6 +13,20 @@
     if (p > 1)
     {
         i = (s * p) - (s - 1);
+    }
+    string requestPath = Context.Request.Path.Value.ToLower();
+    if (ViewData["isErrorDownload"] != null && ViewData["isErrorDownload"].Equals(true))
+    {
+        string message = "چنین فایلی وجود ندارد! |danger";
+        string[] m = message.Split('|');
+        <script>
+            UIkit.notification({
+                message: '@m[0]',
+                status: '@m[1]',
+                pos: 'bottom-center',
+                timeout: 15000
+            });
+        </script>
     }
 }
 @section Scripts{
@@ -53,7 +66,7 @@
                         <td>@item.Location</td>
                         <td class="uk-text-primary" dir="ltr">
                             @{ var socialId = item.SocialId.Split("@").Last();}
-                            <a href="https://instagram.com/@socialId?igshid=1adb9i6196gwh">@item.SocialId</a>
+                            <a href="https://instagram.com/@socialId?igshid=1adb9i6196gwh" target="_blank">@item.SocialId</a>
                         </td>
                         <td><button onclick="showAssist(@item.AssistId)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-eye"></i></button></td>
                         @*<td><button class="uk-button uk-button-primary uk-button-small" onclick="opration(@item.Id, '@item.Title')"><i class="fas fa-list-ul"></i></button></td>

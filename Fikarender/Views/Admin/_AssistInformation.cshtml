@@ -201,7 +201,7 @@
                                     @*<a class="uk-alert-close" uk-close></a>*@
                                 <h3 class="uk-text-center"><i class="fa fa-file" aria-hidden="true"></i> فایل رزومه</h3>
                                 <div class="uk-text-center uk-margin-medium-top">
-                                    <form id="download-form" asp-action="DownloadCvFile" role="form" method="post">
+                                    <form id="download-form" asp-action="DownloadCvFile" asp-controller="Admin" role="form" method="post">
                                         <input type="hidden" name="assistId" value="@Model.AssistId" />
                                         <button class="uk-button uk-button-primary" type="button" onclick="downloadCvFile()">
                                             <i class="fa fa-download" aria-hidden="true"></i> <span> دانلود فایل رزومه</span>
