@@ -7,7 +7,7 @@ namespace Fikarender.Data
 {
     public class ApplicationUser : IdentityUser
     {
-        /*[PersonalData]
+        [PersonalData]
         [StringLength(128, MinimumLength = 2)]
         public string Firstname { get; set; }
 
@@ -41,8 +41,7 @@ namespace Fikarender.Data
 
         public bool Gender { get; set; }
 
-
-        public virtual ICollection<Blog> Blogs { get; set; }*/
+        public virtual ICollection<Blog> Blogs { get; set; }
 
     }
 }

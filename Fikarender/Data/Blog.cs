@@ -30,7 +30,7 @@ namespace Fikarender.Data
         [Display(Name = "خلاصه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(512, MinimumLength = 50, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string Summery { get; set; }
+        public string Summary { get; set; }
 
         [Display(Name = "تاریخ")]
         public DateTime CreateDate { get; set; } = DateTime.Now;
@@ -53,12 +53,12 @@ namespace Fikarender.Data
         [Display(Name = "بازدید")]
         public int ViewCount { get; set; } = 0;
 
-        
-        /*[Display(Name = "نویسنده")]
+
+        [Display(Name = "نویسنده")]
         [StringLength(450)]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string ApplicationUserId { get; set; }
-        public virtual ApplicationUser ApplicationUser { get; set; }*/
+        public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual ICollection<BlogTag> BlogTags { get; set; }
     }
 }

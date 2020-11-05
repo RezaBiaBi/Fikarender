@@ -6,20 +6,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\assist\**" />
+    <Content Remove="wwwroot\assist\**" />
+    <EmbeddedResource Remove="wwwroot\assist\**" />
+    <None Remove="wwwroot\assist\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Data\Config.cs" />
     <Compile Remove="Data\ContactUs.cs" />
     <Compile Remove="Data\MainSlider.cs" />
     <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.cs" />
     <Compile Remove="Data\Migrations\20201004110118_requierdServiceId.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201105065448_ApplicationUser.cs" />
+    <Compile Remove="Data\Migrations\20201105065448_ApplicationUser.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201105083612_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201105083612_Initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20201105092527_Initial.cs" />
+    <Compile Remove="Data\Migrations\20201105092527_Initial.Designer.cs" />
     <Compile Remove="Helpers\SmsSender.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="bundleconfig.json" />
     <Content Remove="Views\Admin\Config.cshtml" />
     <Content Remove="Views\Admin\Users.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="bundleconfig.json" />
     <None Include="Views\Shared\Components\AdminTheme\AdminTheme.cshtml" />
     <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js" />
     <None Include="wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js" />
@@ -35,26 +50,23 @@
 
   <ItemGroup>
     <PackageReference Include="MD.PersianDateTime.Standard" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
-    <PackageReference Include="Quartz" Version="3.1.0" />
+    <PackageReference Include="Quartz" Version="3.0.7" />
     <PackageReference Include="reCAPTCHA.AspNetCore" Version="3.0.10" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
-    <PackageReference Include="WebMarkupMin.AspNetCore3" Version="2.8.11" />
+    <PackageReference Include="WebMarkupMin.AspNetCore3" Version="2.8.14" />
     <PackageReference Include="X.PagedList.Mvc.Core" Version="8.0.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\assist\cvFiles\" />
-    <Folder Include="wwwroot\img\service\" />
-    <Folder Include="wwwroot\img\team\" />
   </ItemGroup>
 
 </Project>

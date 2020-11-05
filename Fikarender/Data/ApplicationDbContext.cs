@@ -1,12 +1,10 @@
-﻿using System.Data;
-using Helpers;
-using Microsoft.AspNetCore.Identity;
+﻿using Helpers;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fikarender.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext()
         {
@@ -19,23 +17,23 @@ namespace Fikarender.Data
 
         public DbSet<AdminTheme> AdminTheme { get; set; }
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
-        public DbSet<Team> Team { get; set; }
-        public DbSet<Service> Services { get; set; }
-        public DbSet<Assist> Assists { get; set; }  
-        public DbSet<WorkSample> WorkSamples { get; set; }  
-        public DbSet<Tag> Tag { get; set; }
+        public DbSet<Assist> Assists { get; set; }
         public DbSet<Blog> Blog { get; set; }
         public DbSet<BlogTag> BlogTag { get; set; }
         public DbSet<Faq> Faqs { get; set; }
-        public DbSet<FaqTag> FaqTags { get; set; }  
+        public DbSet<FaqTag> FaqTags { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ShortLink> ShortLink { get; set; }
+        public DbSet<Tag> Tag { get; set; }
+        public DbSet<Team> Team { get; set; }
 
         /*public DbSet<Config> Config { get; set; }
         public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<MainSlider> MainSlider { get; set; }*/
 
-        public DbSet<ShortLink> ShortLink { get; set; }
         public DbSet<UploadedFile> UploadedFiles { get; set; }
         public DbSet<UsersFeedback> UsersFeedbacks { get; set; }
+        public DbSet<WorkSample> WorkSamples { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

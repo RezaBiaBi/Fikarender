@@ -11,9 +11,9 @@ namespace Fikarender.Components
     public class AdminTheme : ViewComponent
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AdminTheme(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public AdminTheme(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;

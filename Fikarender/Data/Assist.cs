@@ -1,24 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Fikarender.Data
 {
     public class Assist
     {
-        public Assist()
-        {
-        }
-
         [Key]
         public int AssistId { get; set; }
 
         [Required]
         [Display(Name = "نام و نام ‌خانوادگی")]
-        [StringLength(200, MinimumLength = 3)]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string FullName { get; set; }
 
         /*public int StateId { get; set; }
@@ -30,7 +21,6 @@ namespace Fikarender.Data
 
         [Display(Name = "نشانی پیج اینستاگرام")]
         [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(400, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
         public string SocialId { get; set; }
 
         [Display(Name = "تلفن همراه")]

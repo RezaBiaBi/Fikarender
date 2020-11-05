@@ -1,4 +1,4 @@
-/*! UIkit 3.5.7 | https://www.getuikit.com | (c) 2014 - 2020 YOOtheme | MIT License */
+/*! UIkit 3.5.9 | https://www.getuikit.com | (c) 2014 - 2020 YOOtheme | MIT License */
 
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('uikit-util')) :
@@ -720,8 +720,11 @@
                 triggerUpdate(this.getItemIn(), 'itemin', {percent: percent, duration: duration, timing: timing, dir: dir});
                 prev && triggerUpdate(this.getItemIn(true), 'itemout', {percent: 1 - percent, duration: duration, timing: timing, dir: dir});
 
+                // Workaround for a bug in iOS Safari 14.0 which does not let you transition to the same value twice
+                var randomOffset = uikitUtil.index(next) / 10000;
+
                 uikitUtil.Transition
-                    .start(list, {transform: translate(-to * (uikitUtil.isRtl ? -1 : 1), 'px')}, duration, timing)
+                    .start(list, {transform: translate((-to + randomOffset) * (uikitUtil.isRtl ? -1 : 1), 'px')}, duration, timing)
                     .then(deferred.resolve, uikitUtil.noop);
 
                 return deferred.promise;

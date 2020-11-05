@@ -28,14 +28,14 @@ namespace Fikarender.Controllers
         private readonly ILinkTools _linkTools;
         private readonly IWebHostEnvironment _environment;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public AdminController(
             ApplicationDbContext context,
             ILinkTools linkTools,
             IWebHostEnvironment environment,
             RoleManager<IdentityRole> roleManager,
-            UserManager<IdentityUser> userManager)
+            UserManager<ApplicationUser> userManager)
         {
             db = context;
             _linkTools = linkTools;
@@ -313,9 +313,8 @@ namespace Fikarender.Controllers
         [HttpGet]
         public async Task<IActionResult> Team(int? pageNumber)
         {
-            var teams = db.Team;
             var pageNum = pageNumber ?? 1;
-            var onePageOfData = await teams.ToPagedListAsync(pageNum, 10);
+            var onePageOfData = await db.Team.ToPagedListAsync(pageNum, 10);
             ViewBag.data = onePageOfData;
 
             return View();
@@ -332,36 +331,26 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Team.AsNoTracking().AnyAsync(a => a.Sort.Equals(team.Sort)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("Team");
+                }
                 if (avatarImage != null)
                 {
                     if (avatarImage.Length <= 512000)//TODO Change size file
                     {
                         if (avatarImage.ContentType == "image/jpeg" || avatarImage.ContentType == "image/png")
                         {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\team")))
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\team"));
+
                             var fileName = Path.GetRandomFileName() + Path.GetExtension(avatarImage.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\team", fileName);
                             await using (var stream = new FileStream(path, FileMode.Create))
                             {
                                 await avatarImage.CopyToAsync(stream);
                             }
-
-                            #region Resize Images to md & sm
-
-                            using (Image img = Image.FromStream(avatarImage.OpenReadStream()))
-                            {
-                                var x = img.Resize(375, 250, true);
-                                var pathMd = Path.Combine(_environment.WebRootPath, "img\\team", "md-" + fileName);
-                                x.Save(pathMd);
-                            }
-
-                            using (Image img = Image.FromStream(avatarImage.OpenReadStream()))
-                            {
-                                var x = img.Resize(90, 60, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\team", "sm-" + fileName);
-                                x.Save(pathSm);
-                            }
-
-                            #endregion
 
                             team.Avatar = fileName;
                             await db.Team.AddAsync(team);
@@ -412,6 +401,11 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Team.AsNoTracking().AnyAsync(a => !a.TeamId.Equals(team.TeamId) && a.Sort.Equals(team.Sort)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("Team");
+                }
                 if (avatarImage != null)
                 {
                     if (avatarImage.Length <= 512000)//TODO Change size file
@@ -441,30 +435,15 @@ namespace Fikarender.Controllers
 
                             #endregion
 
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\team")))
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\team"));
+
                             var fileName = Path.GetRandomFileName() + Path.GetExtension(avatarImage.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\team", fileName);
                             await using (var stream = new FileStream(path, FileMode.Create))
                             {
                                 await avatarImage.CopyToAsync(stream);
                             }
-
-                            #region Resize Images to md & sm
-
-                            using (Image img = Image.FromStream(avatarImage.OpenReadStream()))
-                            {
-                                var x = img.Resize(375, 250, true);
-                                var pathMd = Path.Combine(_environment.WebRootPath, "img\\team", "md-" + fileName);
-                                x.Save(pathMd);
-                            }
-
-                            using (Image img = Image.FromStream(avatarImage.OpenReadStream()))
-                            {
-                                var x = img.Resize(90, 60, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\team", "sm-" + fileName);
-                                x.Save(pathSm);
-                            }
-
-                            #endregion
 
                             team.Avatar = fileName;
                             db.Update(team);
@@ -516,15 +495,11 @@ namespace Fikarender.Controllers
             if (team != null)
             {
                 var path = Path.Combine(_environment.WebRootPath, "img\\team", team.Avatar);
-                var pathMd = Path.Combine(_environment.WebRootPath, "img\\team", "md-" + team.Avatar);
-                var pathSm = Path.Combine(_environment.WebRootPath, "img\\team", "sm-" + team.Avatar);
 
                 db.Team.Remove(team);
                 try
                 {
                     System.IO.File.Delete(path);
-                    System.IO.File.Delete(pathMd);
-                    System.IO.File.Delete(pathSm);
 
                     await db.SaveChangesAsync();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
@@ -571,8 +546,6 @@ namespace Fikarender.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateService(Service service, IFormFile servicePicture)
         {
-            if (service.ParentId.Equals(0)) service.ParentId = null;
-
             if (ModelState.IsValid)
             {
                 if (servicePicture != null)
@@ -581,25 +554,14 @@ namespace Fikarender.Controllers
                     {
                         if (servicePicture.ContentType == "image/jpeg" || servicePicture.ContentType == "image/png")
                         {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\service")))
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\service"));
+
                             var fileName = Path.GetRandomFileName() + Path.GetExtension(servicePicture.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\service", fileName);
                             await using (var stream = new FileStream(path, FileMode.Create))
                             {
                                 await servicePicture.CopyToAsync(stream);
-                            }
-
-                            using (Image img = Image.FromStream(servicePicture.OpenReadStream()))
-                            {
-                                var x = img.Resize(375, 250, true);
-                                var pathMd = Path.Combine(_environment.WebRootPath, "img\\service", "md-" + fileName);
-                                x.Save(pathMd);
-                            }
-
-                            using (Image img = Image.FromStream(servicePicture.OpenReadStream()))
-                            {
-                                var x = img.Resize(90, 60, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\service", "sm-" + fileName);
-                                x.Save(pathSm);
                             }
 
                             service.ServicePicture = fileName;
@@ -662,10 +624,15 @@ namespace Fikarender.Controllers
         [HttpPost]
         public async Task<IActionResult> EditService(Service service, IFormFile servicePicture)
         {
-            if (service.ParentId.Equals(0)) service.ParentId = null;
-
             if (ModelState.IsValid)
             {
+                var item = await db.Services.FindAsync(service.ServiceId);
+                item.Content = service.Content;
+                item.ParentId = service.ParentId;
+                item.ServiceMetaDesc = service.ServiceMetaDesc;
+                item.ServiceMetaTitle = service.ServiceMetaTitle;
+                item.ServiceTitle = service.ServiceTitle;
+
                 if (servicePicture != null)
                 {
                     if (servicePicture.Length <= 512000)//TODO Change size file
@@ -683,46 +650,18 @@ namespace Fikarender.Controllers
                                 await servicePicture.CopyToAsync(stream);
                             }
 
-                            #region Resize Images to md & sm
-
-                            using (Image img = Image.FromStream(servicePicture.OpenReadStream()))
+                            item.ServicePicture = fileName;
+                            if (System.IO.File.Exists(oldPic))
                             {
-                                var x = img.Resize(375, 250, true);
-                                var pathMd = Path.Combine(_environment.WebRootPath, "img\\service", "md-" + fileName);
-                                x.Save(pathMd);
-                            }
-
-                            using (Image img = Image.FromStream(servicePicture.OpenReadStream()))
-                            {
-                                var x = img.Resize(90, 60, true);
-                                var pathSm = Path.Combine(_environment.WebRootPath, "img\\service", "sm-" + fileName);
-                                x.Save(pathSm);
-                            }
-
-                            #endregion
-
-                            service.ServicePicture = fileName;
-                            db.Services.Update(service);
-                            try
-                            {
-                                await db.SaveChangesAsync();
-                                if (System.IO.File.Exists(oldPic))
+                                try
                                 {
-                                    try
-                                    {
-                                        System.IO.File.Delete(oldPic);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                                        return RedirectToAction("Service");
-                                    }
+                                    System.IO.File.Delete(oldPic);
                                 }
-                                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                            }
-                            catch (Exception e)
-                            {
-                                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                catch (Exception e)
+                                {
+                                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                                    return RedirectToAction("Service");
+                                }
                             }
                         }
                         else
@@ -735,18 +674,16 @@ namespace Fikarender.Controllers
                         TempData["msg"] = "حجم تصویر بیشتر از 512 کیلوبایت است |danger";
                     }
                 }
-                else
+
+                db.Update(item);
+                try
                 {
-                    db.Services.Update(service);
-                    try
-                    {
-                        await db.SaveChangesAsync();
-                        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                    }
-                    catch (Exception e)
-                    {
-                        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                    }
+                    await db.SaveChangesAsync();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
                 }
             }
             else
@@ -762,16 +699,12 @@ namespace Fikarender.Controllers
             var service = await db.Services.FindAsync(id);
             if (service != null)
             {
-                var path = Path.Combine(_environment.WebRootPath, "img\\team", service.ServicePicture);
-                var pathMd = Path.Combine(_environment.WebRootPath, "img\\team", "md-" + service.ServicePicture);
-                var pathSm = Path.Combine(_environment.WebRootPath, "img\\team", "sm-" + service.ServicePicture);
+                var path = Path.Combine(_environment.WebRootPath, "img\\service", service.ServicePicture);
 
                 db.Services.Remove(service);
                 try
                 {
                     System.IO.File.Delete(path);
-                    System.IO.File.Delete(pathMd);
-                    System.IO.File.Delete(pathSm);
 
                     await db.SaveChangesAsync();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
@@ -797,9 +730,8 @@ namespace Fikarender.Controllers
         [HttpGet]
         public async Task<IActionResult> WorkSample(int? pageNumber)
         {
-            var workSample = db.WorkSamples;
             var pageNum = pageNumber ?? 1;
-            var onePageOfData = await workSample.ToPagedListAsync(pageNum, 20);
+            var onePageOfData = await db.WorkSamples.ToPagedListAsync(pageNum, 20);
             ViewBag.data = onePageOfData;
 
             return View();
@@ -809,7 +741,7 @@ namespace Fikarender.Controllers
         public async Task<IActionResult> CreateWorkSample(int? serviceId)
         {
             var services = await db.Services.ToListAsync();
-            if (serviceId.HasValue) ViewData["selectedCreateService"] = db.Services.FindAsync(serviceId.Value).Result.ServiceId;
+            if (serviceId.HasValue) ViewData["selectedCreateService"] = await db.Services.Where(a => a.ServiceId.Equals(serviceId.Value)).Select(a => a.ServiceId).SingleAsync();
             ViewData["WorkSampleServiceId"] = services;
 
             return View("~/Views/Admin/Create/WorkSample.cshtml");
@@ -844,49 +776,17 @@ namespace Fikarender.Controllers
                 {
                     if ((sampleFile.ContentType == "image/jpeg" || sampleFile.ContentType == "image/png") && sampleFile.IsImage())
                     {
-                        if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "worksample\\")))
+                        if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\work-sample")))
                         {
-                            Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "worksample\\"));
+                            Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\work-sample"));
                         }
 
                         var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
-                        var path = Path.Combine(_environment.WebRootPath, "worksample\\", $"pic-" + fileName);
+                        var path = Path.Combine(_environment.WebRootPath, "img\\work-sample", $"pic-" + fileName);
                         await using (var stream = new FileStream(path, FileMode.Create))
                         {
                             await sampleFile.CopyToAsync(stream);
                         }
-
-                        #region Resize Images to md & sm
-
-                        using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
-                        {
-                            var x = img.Resize(375, 250, true);
-                            var pathMd = Path.Combine(_environment.WebRootPath, "workSample\\", $"md-" + fileName);
-                            try
-                            {
-                                x.Save(pathMd);
-                            }
-                            catch (Exception e)
-                            {
-                                TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
-                            }
-                        }
-
-                        using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
-                        {
-                            var x = img.Resize(90, 60, true);
-                            var pathSm = Path.Combine(_environment.WebRootPath, "workSample\\", $"sm-" + fileName);
-                            try
-                            {
-                                x.Save(pathSm);
-                            }
-                            catch (Exception e)
-                            {
-                                TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
-                            }
-                        }
-
-                        #endregion
 
                         workSample.DocumentFile = fileName;
                         await db.WorkSamples.AddAsync(workSample);
@@ -970,53 +870,21 @@ namespace Fikarender.Controllers
                     {
                         #region Delete Old ImageFile
 
-                        if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "worksample\\")))
+                        if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\work-sample")))
                         {
-                            Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "worksample\\"));
+                            Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\work-sample"));
                         }
-                        var deletePath = Path.Combine(_environment.WebRootPath, "workSample\\", $"pic-" + workSample.DocumentFile);
+                        var deletePath = Path.Combine(_environment.WebRootPath, "img\\work-sample\\", $"pic-" + workSample.DocumentFile);
                         System.IO.File.Delete(deletePath);
 
                         #endregion
 
                         var fileName = Path.GetRandomFileName() + Path.GetExtension(sampleFile.FileName).ToLower();
-                        var path = Path.Combine(_environment.WebRootPath, "worksample\\", $"pic-" + fileName);
+                        var path = Path.Combine(_environment.WebRootPath, "img\\work-sample", $"pic-" + fileName);
                         await using (var stream = new FileStream(path, FileMode.Create))
                         {
                             await sampleFile.CopyToAsync(stream);
                         }
-
-                        #region Resize Images to md & sm
-
-                        using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
-                        {
-                            var x = img.Resize(375, 250, true);
-                            var pathMd = Path.Combine(_environment.WebRootPath, "worksample\\", "md-" + fileName);
-                            try
-                            {
-                                x.Save(pathMd);
-                            }
-                            catch (Exception e)
-                            {
-                                TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
-                            }
-                        }
-
-                        using (Image img = Image.FromStream(sampleFile.OpenReadStream()))
-                        {
-                            var x = img.Resize(90, 60, true);
-                            var pathSm = Path.Combine(_environment.WebRootPath, "worksample\\", "sm-" + fileName);
-                            try
-                            {
-                                x.Save(pathSm);
-                            }
-                            catch (Exception e)
-                            {
-                                TempData["msg"] = $"عملیات ریسایز عکس با مشکل مواجه شد. جزئیات: {e.Message} |danger";
-                            }
-                        }
-
-                        #endregion
 
                         workSample.DocumentFile = fileName;
                         db.WorkSamples.Update(workSample);
@@ -1061,19 +929,14 @@ namespace Fikarender.Controllers
         {
             if (workSampleId.HasValue)
             {
-                var workSampleFile = await db.WorkSamples.FindAsync(workSampleId);
-                if (workSampleFile != null)
+                var workSample = await db.WorkSamples.FindAsync(workSampleId);
+                if (workSample != null)
                 {
-                    var pathImage = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"pic-" + workSampleFile.DocumentFile);
-                    var pathMd = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"md-" + workSampleFile.DocumentFile);
-                    var pathSm = Path.Combine(_environment.WebRootPath, "img\\workSample\\" + workSampleFile.Title, $"sm-" + workSampleFile.DocumentFile);
-                    workSampleFile.DocumentFile = "";
-                    db.WorkSamples.Update(workSampleFile);
+                    var pathImage = Path.Combine(_environment.WebRootPath, "img\\workSample\\", $"pic-" + workSample.DocumentFile);
+                    db.Remove(workSample);
                     try
                     {
                         System.IO.File.Delete(pathImage);
-                        System.IO.File.Delete(pathMd);
-                        System.IO.File.Delete(pathSm);
                         await db.SaveChangesAsync();
                         TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                     }
@@ -1081,31 +944,6 @@ namespace Fikarender.Controllers
                     {
                         TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
                     }
-                }
-            }
-
-            var workSample = await db.WorkSamples.FindAsync(id);
-            if (workSample != null)
-            {
-                var pathImage = Path.Combine(_environment.WebRootPath, "worksample\\", $"pic-" + workSample.DocumentFile);
-                var pathMd = Path.Combine(_environment.WebRootPath, "worksample\\", $"md-" + workSample.DocumentFile);
-                var pathSm = Path.Combine(_environment.WebRootPath, "worksample\\", $"sm-" + workSample.DocumentFile);
-                db.WorkSamples.Remove(workSample);
-                try
-                {
-                    System.IO.File.Delete(pathImage);
-                    System.IO.File.Delete(pathMd);
-                    System.IO.File.Delete(pathSm);
-                    if (Directory.Exists(Path.Combine(_environment.WebRootPath, "worksample\\")))
-                    {
-                        Directory.Delete(Path.Combine(_environment.WebRootPath, "worksample\\"));
-                    }
-                    await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
                 }
             }
             return Redirect(Request.Headers["Referer"].ToString());
@@ -1235,6 +1073,11 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Faqs.AsNoTracking().AnyAsync(a => a.Sort.Equals(faq.Sort)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("Faq");
+                }
                 await db.Faqs.AddAsync(faq);
                 try
                 {
@@ -1285,6 +1128,12 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Faqs.AsNoTracking().AnyAsync(a => !a.FaqId.Equals(faq.FaqId) && a.Sort.Equals(faq.Sort)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("Faq");
+                }
+
                 var currentTags = await db.FaqTags.Where(a => a.FaqId.Equals(faq.FaqId)).ToListAsync();
                 if (currentTags.Count > 0) { db.FaqTags.RemoveRange(currentTags.AsEnumerable()); }
 
@@ -1367,40 +1216,17 @@ namespace Fikarender.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> Assist(string filterBy, string fullname, string phone, string socialId, string location, int? pageNumber)
+        public async Task<IActionResult> Assist(string filterBy, string param, int? pageNumber)
         {
             var data = db.Assists.AsQueryable();
-            switch (filterBy)
-            {
-                case "fullname":
-                    if (!string.IsNullOrEmpty(fullname))
-                    {
-                        data = data.Where(a => a.FullName.Contains(fullname));
-                    }
-                    break;
-                case "phone":
-                    if (!string.IsNullOrEmpty(phone) && phone.Length <=11)
-                    {
-                        data = data.Where(a => a.PhoneNumber.Contains(phone));
-                    }
-                    break;
-                case "socialId":
-                    if (!string.IsNullOrEmpty(socialId))
-                    {
-                        data = data.Where(a => a.SocialId.Contains(socialId));
-                    }
-                    break;
-                case "location":
-                    if (!string.IsNullOrEmpty(location))
-                    {
-                        data = data.Where(a => a.Location.Contains(location));
-                    }
-                    break;
-            }
+            if (filterBy.Equals("fullname"))
+                data = data.Where(a => a.FullName.Contains(param));
+            else
+                data = data.Where(a => a.PhoneNumber.Contains(param));
+
             ViewBag.filterBy = filterBy;
-            ViewBag.fullname = fullname;
-            ViewBag.phone = phone;
-            ViewBag.socialId = socialId;
+            ViewBag.param = param;
+
             var pageNum = pageNumber ?? 1;
             var onePageOfData = await data.OrderByDescending(a => a.AssistId).ToPagedListAsync(pageNum, 15);
             ViewBag.data = onePageOfData;

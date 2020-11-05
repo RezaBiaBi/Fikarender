@@ -66,7 +66,7 @@ namespace Fikarender
 
             #endregion
 
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = false;
@@ -106,44 +106,7 @@ namespace Fikarender
 
             #endregion
 
-            #region markup Web Html Compression
-
-            services.AddWebMarkupMin(options =>
-                {
-                    options.AllowCompressionInDevelopmentEnvironment = true;
-                    options.AllowMinificationInDevelopmentEnvironment = true;
-                    #region more Options
-
-                    /*options.IsCompressionEnabled();
-                    options.IsMinificationEnabled();
-                    options.IsAllowableResponseSize(Int64.MaxValue);
-                    options.IsPoweredByHttpHeadersEnabled();*/
-
-                    #endregion
-                }).AddHtmlMinification().AddHttpCompression()
-                .AddXhtmlMinification().AddXmlMinification();
-
-            #endregion
-
-            #region Add MemoryCache
-
-            /*services.AddMemoryCache(options =>
-            {
-                *//*options.CompactionPercentage = Double.Epsilon;
-                options.ExpirationScanFrequency = TimeSpan.FromDays(1);
-                options.SizeLimit = Int64.MaxValue;*/
-                /*options.Clock = new SystemClock();*//*
-            });
-
-            services.AddDistributedMemoryCache(options =>
-            {
-                *//*options.CompactionPercentage = Double.Epsilon;
-                options.ExpirationScanFrequency = TimeSpan.FromDays(1);
-                options.SizeLimit = Int64.MaxValue;*/
-                /*options.Clock = new SystemClock();*//*
-            });*/
-
-            #endregion
+            services.AddWebMarkupMin().AddHtmlMinification(a => { a.MinificationSettings.RemoveHtmlComments = true; a.MinificationSettings.MinifyEmbeddedJsCode = true; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -161,15 +124,6 @@ namespace Fikarender
             //    app.UseHsts();
             //}
 
-            #region Create Default page html (Intro WebPage)
-
-            /*var options = new DefaultFilesOptions();
-            options.DefaultFileNames.Clear();
-            options.DefaultFileNames.Add("IntroIndex.html");
-            app.UseDefaultFiles(options);*/
-
-            #endregion
-
             app.UseDeveloperExceptionPage();
             app.UseDatabaseErrorPage();
 
@@ -186,7 +140,8 @@ namespace Fikarender
             });*/
 
             #endregion
-            
+            app.UseStatusCodePages();
+
             app.UseRewriter(new RewriteOptions().Add(new RedirectLowerCaseRule()));
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -195,19 +150,6 @@ namespace Fikarender
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-            #region Use Google Authentication
-
-            /*app.UseGoogleAuthentication(new GoogleOptions
-            {
-                AuthenticationScheme = "Google",
-                ClientId = "YOUR_CLIENT_ID",
-                ClientSecret = "YOUR_CLIENT_SECRET",
-                CallbackPath = new PathString("/signin-google"),
-                SignInScheme = "MainCookie"
-            });*/
-
-            #endregion
 
             app.UseSession();
             /*app.Use(async (context, next) =>
@@ -237,6 +179,8 @@ namespace Fikarender
                 }
                 await next.Invoke();
             });*/
+
+            app.UseWebMarkupMin();
 
             app.UseEndpoints(endpoints =>
             {

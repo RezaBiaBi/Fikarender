@@ -1,29 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Fikarender.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Fikarender.Data
 {
     public class WorkSample
     {
-        public WorkSample()
-        {
-        }
-
         [Key]
         public int WorkSampleId { get; set; }
 
         [Display(Name = "عنوان نمونه‌کار")]
         [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
-        [MaxLength(200, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string Title { get; set; }
 
         [Display(Name = "عنوان متا")]
-        [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(200, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string MetaTitle { get; set; }
 
         [Required]
@@ -42,11 +33,11 @@ namespace Fikarender.Data
 
         [Display(Name = "شرح نمونه‌کار")]
         [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
-        [MaxLength(600, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [StringLength(512, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string Description { get; set; }
 
-        [Display(Name = "فایل نمونه‌کار")]
-        [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [Display(Name = "تصویر")]
+        [StringLength(128)]
         public string DocumentFile { get; set; }
 
         [Display(Name = "لینک ویدئو نمونه‌کار")]
@@ -54,8 +45,7 @@ namespace Fikarender.Data
         public string SampleVideoLink { get; set; }
         
         [Display(Name = "محتوا")]
-        [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
+        [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]
         public string LongContent { get; set; } 
     }
 }

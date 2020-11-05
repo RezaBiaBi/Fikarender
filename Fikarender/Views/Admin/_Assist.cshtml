@@ -1,5 +1,4 @@
-﻿
-@model Assist
+﻿@model Assist
 @using X.PagedList
 @using X.PagedList.Mvc.Core
 
@@ -48,7 +47,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("Assist", new { pageNumber = page}))
+            @Html.PagedListPager(data, page => Url.Action("Assist", new { pageNumber = page, filterby = ViewBag.filterby, param = ViewBag.param }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "#preloader", OnSuccess = "goUp" }))
         </div>
     }
 }

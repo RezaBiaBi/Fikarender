@@ -1,53 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Fikarender.Data
 {
     public class Service
     {
-        public Service()
-        {
-        }
-
         [Key]
         public int ServiceId { get; set; }
 
         [Display(Name = "عنوان سرویس")]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید!")]
-        [MaxLength(100, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [StringLength(128, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ServiceTitle { get; set; }
 
         [Display(Name = "عنوان متا سرویس")]
-        [MaxLength(200, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ServiceMetaTitle { get; set; }
 
         [Display(Name = "شرح متا سرویس")]
-        [MaxLength(600, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ServiceMetaDesc { get; set; }
 
         [Display(Name = "دسته اصلی")]
-        public int? ParentId { get; set; }
+        public int ParentId { get; set; }
 
         [Display(Name = "تصویر")]
-        [MaxLength(600, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [StringLength(128)]
         public string ServicePicture { get; set; }
 
         [Display(Name = "محتوا")]
-        [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید!")]
         public string Content { get; set; }
 
 
-        #region Navigation Property
-
-        [ForeignKey("ParentId")]
-        public virtual ICollection<Service> Services { get; set; }    
-        public virtual ICollection<WorkSample> WorkSamples { get; set; }    
-
+        #region Navigation Property 
+        public virtual ICollection<WorkSample> WorkSamples { get; set; }
         #endregion
     }
 }

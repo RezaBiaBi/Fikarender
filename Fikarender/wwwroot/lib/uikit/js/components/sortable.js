@@ -1,4 +1,4 @@
-/*! UIkit 3.5.7 | https://www.getuikit.com | (c) 2014 - 2020 YOOtheme | MIT License */
+/*! UIkit 3.5.9 | https://www.getuikit.com | (c) 2014 - 2020 YOOtheme | MIT License */
 
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('uikit-util')) :
@@ -268,17 +268,11 @@
                 var ref$1 = this.origin;
                 var offsetTop = ref$1.offsetTop;
                 var offsetLeft = ref$1.offsetLeft;
-                var ref$2 = this.drag;
-                var offsetHeight = ref$2.offsetHeight;
-                var offsetWidth = ref$2.offsetWidth;
-                var ref$3 = uikitUtil.offset(window);
-                var right = ref$3.right;
-                var bottom = ref$3.bottom;
                 var target = document.elementFromPoint(x, y);
 
                 uikitUtil.css(this.drag, {
-                    top: uikitUtil.clamp(y - offsetTop, 0, bottom - offsetHeight),
-                    left: uikitUtil.clamp(x - offsetLeft, 0, right - offsetWidth)
+                    top: y - offsetTop,
+                    left: x - offsetLeft
                 });
 
                 var sortable = this.getSortable(target);
@@ -488,9 +482,9 @@
                 var bottom = ref.bottom;
                 var height = ref.height;
 
-                if (top < y && top + 30 > y) {
+                if (top < y && top + 35 > y) {
                     scroll -= dist;
-                } else if (bottom > y && bottom - 30 < y) {
+                } else if (bottom > y && bottom - 35 < y) {
                     scroll += dist;
                 } else {
                     return;
@@ -514,7 +508,7 @@
     function appendDrag(container, element) {
         var clone = uikitUtil.append(container, element.outerHTML.replace(/(^<)(?:li|tr)|(?:li|tr)(\/>$)/g, '$1div$2'));
 
-        uikitUtil.attr(clone, 'style', ((uikitUtil.attr(clone, 'style')) + ";margin:0!important"));
+        clone.style.setProperty('margin', '0', 'important');
 
         uikitUtil.css(clone, uikitUtil.assign({
             boxSizing: 'border-box',

@@ -1,26 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Fikarender.Data;
 using Fikarender.Models;
 using Helpers;
-using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using reCAPTCHA.AspNetCore;
 using reCAPTCHA.AspNetCore.Attributes;
-using ResizeImageASPNETCore;
-using X.PagedList;
 
 namespace Fikarender.Controllers
 {
@@ -55,7 +46,7 @@ namespace Fikarender.Controllers
             _signInManager = signInManager;
         }
 
-        /*#region Authentication
+        #region Authentication
 
         #region Login & Logout
 
@@ -102,81 +93,6 @@ namespace Fikarender.Controllers
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByNameAsync(Input.Username);
-
-                    #region getting basket from cookie and move to user
-
-                    *//*// getting basket from cookie and move to user
-                    HttpContext.Request.Cookies.TryGetValue("parsmvcBasket", out string cookie);
-                    if (cookie != null)
-                    {
-                        var cookieBasket = await db.Order.SingleOrDefaultAsync(a => a.CookieValue.Equals(cookie) && a.Status.Equals((byte)OrderStatus.Initial));
-                        if (cookieBasket != null)
-                        {
-                            if (cookieBasket.Status.Equals(0) && cookieBasket.LastUpdate < DateTime.Now.AddDays(-30))
-                            {
-                                db.Remove(cookieBasket);
-                                await db.SaveChangesAsync();
-                            }
-                            else
-                            {
-                                var userBasket = await db.Order.SingleOrDefaultAsync(a => a.UserId.Equals(user.Id) && a.CookieValue != cookie);
-                                if (userBasket != null)
-                                {
-                                    if (userBasket.Status.Equals((byte)OrderStatus.Initial) && userBasket.LastUpdate < DateTime.Now.AddDays(-30))
-                                    {
-                                        db.Remove(userBasket);
-                                        await db.SaveChangesAsync();
-                                    }
-                                    else
-                                    {
-                                        var productsInUserBasket = userBasket.OrderDetails.Select(a => a.ProductId).ToList();
-                                        foreach (var item in cookieBasket.OrderDetails)
-                                        {
-                                            if (productsInUserBasket.Contains(item.ProductId))
-                                            {
-                                                var i = userBasket.OrderDetails.Where(a => a.ProductId.Equals(item.ProductId)).Single();
-                                                db.Remove(i);
-                                            }
-                                            item.OrderId = userBasket.Id;
-                                            db.Update(item);
-                                        }
-                                        userBasket.CookieValue = cookie;
-                                        userBasket.LastUpdate = cookieBasket.LastUpdate;
-                                        db.Update(userBasket);
-                                        try
-                                        {
-                                            await db.SaveChangesAsync();
-                                            db.Remove(cookieBasket);
-                                            await db.SaveChangesAsync();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            throw;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (cookieBasket.UserId != user.Id)
-                                    {
-                                        cookieBasket.UserId = user.Id;
-                                        db.Update(cookieBasket);
-                                        try
-                                        {
-                                            await db.SaveChangesAsync();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            throw;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // end*//*
-
-                    #endregion
 
                     var returnUrl = Request.Form["returnUrl"].ToString();
                     if (!string.IsNullOrWhiteSpace(returnUrl))
@@ -242,13 +158,13 @@ namespace Fikarender.Controllers
                 Input.Username = Input.Username.PersianToEnglish();
                 var user = new ApplicationUser
                 {
-                    *//*Gender = Input.Gender,
+                    Gender = Input.Gender,
                     UserName = Input.Username,
                     Firstname = Input.Firstname,
                     Lastname = Input.Lastname,
                     PhoneNumber = Input.Username,
                     PhoneNumberConfirmed = false,
-                    RegisterDate = DateTime.Now*//*
+                    RegisterDate = DateTime.Now
                 };
 
                 Input.Password = Input.Password.PersianToEnglish();
@@ -257,7 +173,7 @@ namespace Fikarender.Controllers
                 if (result.Succeeded)
                 {
                     var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, Input.Username);
-                    var res = *//*await _smsSender.SendPattern(user.PhoneNumber, code, "activate");*//* "ok";
+                    var res = /*await _smsSender.SendPattern(user.PhoneNumber, code, "activate");*/ "ok";
                     if (res.Equals("ok"))
                     {
 
@@ -400,7 +316,7 @@ namespace Fikarender.Controllers
                 {
                     var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, user.PhoneNumber);
 
-                    var res = *//*await _smsSender.SendPattern(user.PhoneNumber, code, "activate");*//* "ok";
+                    var res = /*await _smsSender.SendPattern(user.PhoneNumber, code, "activate");*/ "ok";
                     if (res.Equals("ok"))
                     {
 
@@ -441,7 +357,7 @@ namespace Fikarender.Controllers
                     return RedirectToAction("ResetPassword");
                 }
                 var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var res = *//*await _smsSender.SendPattern(user.PhoneNumber, code, "reset")*//* "ok";
+                var res = /*await _smsSender.SendPattern(user.PhoneNumber, code, "reset")*/ "ok";
                 if (res.Equals("ok"))
                 {
 
@@ -583,7 +499,7 @@ namespace Fikarender.Controllers
             return View();
         }
 
-        #endregion*/
+        #endregion
 
         public IActionResult Index()
         {

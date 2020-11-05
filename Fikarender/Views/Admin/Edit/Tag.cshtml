@@ -34,8 +34,8 @@
                 <div>
                     <label asp-for="Type" class="uk-form-label"></label>
                     <select asp-for="Type" class="uk-select uk-border-rounded">
-                        <!option value="@((byte)TagType.Faq)" @if (Model.Type.Equals((byte)TagType.Faq)) { <text> selected="selected" </text> }>مخصوص سوالات متداول</!option>
                         <!option value="@((byte)TagType.Blog)" @if (Model.Type.Equals((byte)TagType.Blog)) { <text> selected="selected" </text> }>مخصوص وبلاگ</!option>
+                        <!option value="@((byte)TagType.Faq)" @if (Model.Type.Equals((byte)TagType.Faq)) { <text> selected="selected" </text> }>مخصوص سوالات متداول</!option>
                     </select>
                     <span asp-validation-for="Type" class="uk-text-danger"></span>
                 </div>

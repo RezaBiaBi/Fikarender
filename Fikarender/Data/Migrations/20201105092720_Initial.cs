@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fikarender.Data.Migrations
 {
-    public partial class initialDB : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -45,41 +45,80 @@ namespace Fikarender.Data.Migrations
                 newName: "AspNetRoleClaims",
                 newSchema: "dbo");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
+            migrationBuilder.AddColumn<string>(
+                name: "Address",
                 schema: "dbo",
-                table: "AspNetUserTokens",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128);
+                table: "AspNetUsers",
+                maxLength: 256,
+                nullable: true);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "LoginProvider",
+            migrationBuilder.AddColumn<string>(
+                name: "Avatar",
                 schema: "dbo",
-                table: "AspNetUserTokens",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128);
+                table: "AspNetUsers",
+                maxLength: 50,
+                nullable: true);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "ProviderKey",
+            migrationBuilder.AddColumn<DateTime>(
+                name: "Birth",
                 schema: "dbo",
-                table: "AspNetUserLogins",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128);
+                table: "AspNetUsers",
+                nullable: true);
 
-            migrationBuilder.AlterColumn<string>(
-                name: "LoginProvider",
+            migrationBuilder.AddColumn<DateTime>(
+                name: "ConfirmationDate",
                 schema: "dbo",
-                table: "AspNetUserLogins",
+                table: "AspNetUsers",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Firstname",
+                schema: "dbo",
+                table: "AspNetUsers",
+                maxLength: 128,
+                nullable: true);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "Gender",
+                schema: "dbo",
+                table: "AspNetUsers",
                 nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(128)",
-                oldMaxLength: 128);
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Lastname",
+                schema: "dbo",
+                table: "AspNetUsers",
+                maxLength: 128,
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "LockoutReason",
+                schema: "dbo",
+                table: "AspNetUsers",
+                maxLength: 256,
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "NationalId",
+                schema: "dbo",
+                table: "AspNetUsers",
+                maxLength: 10,
+                nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "RegisterDate",
+                schema: "dbo",
+                table: "AspNetUsers",
+                nullable: false,
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+            migrationBuilder.AddColumn<string>(
+                name: "Tel",
+                schema: "dbo",
+                table: "AspNetUsers",
+                maxLength: 11,
+                nullable: true);
 
             migrationBuilder.CreateTable(
                 name: "AdminTheme",
@@ -103,9 +142,9 @@ namespace Fikarender.Data.Migrations
                 {
                     AssistId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FullName = table.Column<string>(maxLength: 200, nullable: false),
+                    FullName = table.Column<string>(maxLength: 256, nullable: false),
                     Location = table.Column<string>(maxLength: 50, nullable: false),
-                    SocialId = table.Column<string>(maxLength: 400, nullable: false),
+                    SocialId = table.Column<string>(nullable: false),
                     PhoneNumber = table.Column<string>(maxLength: 11, nullable: false),
                     Graphic = table.Column<bool>(nullable: false),
                     MotionGraphic = table.Column<bool>(nullable: false),
@@ -139,17 +178,25 @@ namespace Fikarender.Data.Migrations
                     MetaTitle = table.Column<string>(maxLength: 256, nullable: true),
                     Description = table.Column<string>(maxLength: 512, nullable: true),
                     MetaDescription = table.Column<string>(maxLength: 512, nullable: false),
-                    Summery = table.Column<string>(maxLength: 512, nullable: false),
+                    Summary = table.Column<string>(maxLength: 512, nullable: false),
                     CreateDate = table.Column<DateTime>(nullable: false),
                     UpdateDate = table.Column<DateTime>(nullable: false),
                     Content = table.Column<string>(nullable: false),
                     DeskImage = table.Column<string>(maxLength: 50, nullable: true),
                     MobileImage = table.Column<string>(maxLength: 50, nullable: true),
-                    ViewCount = table.Column<int>(nullable: false)
+                    ViewCount = table.Column<int>(nullable: false),
+                    ApplicationUserId = table.Column<string>(maxLength: 450, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Blog", x => x.BlogId);
+                    table.ForeignKey(
+                        name: "FK_Blog_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalSchema: "dbo",
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -175,12 +222,12 @@ namespace Fikarender.Data.Migrations
                 {
                     ServiceId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ServiceTitle = table.Column<string>(maxLength: 100, nullable: false),
-                    ServiceMetaTitle = table.Column<string>(maxLength: 200, nullable: true),
-                    ServiceMetaDesc = table.Column<string>(maxLength: 600, nullable: true),
-                    ParentId = table.Column<int>(nullable: true),
-                    ServicePicture = table.Column<string>(maxLength: 600, nullable: false),
-                    Content = table.Column<string>(maxLength: 200, nullable: false)
+                    ServiceTitle = table.Column<string>(maxLength: 128, nullable: false),
+                    ServiceMetaTitle = table.Column<string>(maxLength: 256, nullable: true),
+                    ServiceMetaDesc = table.Column<string>(maxLength: 256, nullable: true),
+                    ParentId = table.Column<int>(nullable: false),
+                    ServicePicture = table.Column<string>(maxLength: 128, nullable: true),
+                    Content = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -226,12 +273,12 @@ namespace Fikarender.Data.Migrations
                 {
                     TeamId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FullName = table.Column<string>(maxLength: 300, nullable: false),
+                    FullName = table.Column<string>(maxLength: 256, nullable: false),
                     Email = table.Column<string>(maxLength: 256, nullable: false),
                     PhoneNumber = table.Column<string>(maxLength: 11, nullable: false),
-                    Degree = table.Column<string>(maxLength: 200, nullable: false),
+                    Degree = table.Column<string>(maxLength: 256, nullable: false),
                     Avatar = table.Column<string>(maxLength: 50, nullable: true),
-                    Description = table.Column<string>(maxLength: 256, nullable: false),
+                    Description = table.Column<string>(nullable: false),
                     Sort = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -279,14 +326,15 @@ namespace Fikarender.Data.Migrations
                 {
                     WorkSampleId = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(maxLength: 200, nullable: false),
-                    MetaTitle = table.Column<string>(maxLength: 200, nullable: false),
+                    Title = table.Column<string>(maxLength: 256, nullable: false),
+                    MetaTitle = table.Column<string>(maxLength: 256, nullable: false),
                     ServiceId = table.Column<int>(nullable: false),
                     IsShow = table.Column<bool>(nullable: false),
-                    Status = table.Column<byte>(maxLength: 200, nullable: false),
-                    Description = table.Column<string>(maxLength: 600, nullable: false),
-                    Picture = table.Column<string>(maxLength: 600, nullable: false),
-                    LongContent = table.Column<string>(maxLength: 1024, nullable: false)
+                    Status = table.Column<bool>(nullable: false),
+                    Description = table.Column<string>(maxLength: 512, nullable: false),
+                    DocumentFile = table.Column<string>(maxLength: 128, nullable: true),
+                    SampleVideoLink = table.Column<string>(maxLength: 1024, nullable: true),
+                    LongContent = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -357,6 +405,12 @@ namespace Fikarender.Data.Migrations
                         principalColumn: "TagId",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Blog_ApplicationUserId",
+                schema: "dbo",
+                table: "Blog",
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BlogTag_BlogId",
@@ -443,6 +497,61 @@ namespace Fikarender.Data.Migrations
                 name: "Services",
                 schema: "dbo");
 
+            migrationBuilder.DropColumn(
+                name: "Address",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Avatar",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Birth",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "ConfirmationDate",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Firstname",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Gender",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Lastname",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "LockoutReason",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "NationalId",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "RegisterDate",
+                schema: "dbo",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Tel",
+                schema: "dbo",
+                table: "AspNetUsers");
+
             migrationBuilder.RenameTable(
                 name: "AspNetUserTokens",
                 schema: "dbo",
@@ -477,38 +586,6 @@ namespace Fikarender.Data.Migrations
                 name: "AspNetRoleClaims",
                 schema: "dbo",
                 newName: "AspNetRoleClaims");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Name",
-                table: "AspNetUserTokens",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                oldClrType: typeof(string));
-
-            migrationBuilder.AlterColumn<string>(
-                name: "LoginProvider",
-                table: "AspNetUserTokens",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                oldClrType: typeof(string));
-
-            migrationBuilder.AlterColumn<string>(
-                name: "ProviderKey",
-                table: "AspNetUserLogins",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                oldClrType: typeof(string));
-
-            migrationBuilder.AlterColumn<string>(
-                name: "LoginProvider",
-                table: "AspNetUserLogins",
-                type: "nvarchar(128)",
-                maxLength: 128,
-                nullable: false,
-                oldClrType: typeof(string));
         }
     }
 }

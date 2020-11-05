@@ -1,91 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Fikarender.Data;
 
 namespace Fikarender.Models
 {
-    public class HomeVM
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        //public List<MainSlider> MainSlider { get; set; }
-        public List<HomeProductVM> MostSales { get; set; }
-        public List<UsersFeedback> UsersFeedbacks { get; set; }
-    }
-
-    public class HomeProductVM
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Picture { get; set; }
-        public double Price { get; set; }
-        public int Discount { get; set; }
-        public int Stock { get; set; }
-        public string Size { get; set; }
-        public DateTime LastUpdate { get; set; }
-    }
-
-
-    public class ContactUsVM
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Content { get; set; }
-        public string MapUrl { get; set; }
-        public string Tel { get; set; }
-        public string Email { get; set; }
-        public string Address { get; set; }
-        public string Instagram { get; set; }
-    }
-
-    public class FooterVM
-    {
-        public string Text { get; set; }
-        public string Tel { get; set; }
-        public string Email { get; set; }
-        public string Address { get; set; }
-    }
-
-    public class NavbarPartialVM
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Route { get; set; }
-        public int ParentId { get; set; }
-        public bool IsLastNode { get; set; }
-        public int Sort { get; set; }
-    }
-
-    public class ChangeGroupPriceVM
-    {
-        public int ProductId { get; set; }
-        public int BrandId { get; set; }
-        public string Title { get; set; }
-        public double Price { get; set; }
-        public int Discount { get; set; }
-        public int Stock { get; set; }
-        public int SalesCount { get; set; }
-        public string SizeTitle { get; set; }
-    }
-
-    public class OrderAdditionalInfoVM
-    {
-        public string State { get; set; }
-        public string City { get; set; }
-        public string Address { get; set; }
-        public string PostalCode { get; set; }
-        public string ReceiverName { get; set; }
-        public string PhoneNumber { get; set; }
-    }
-
-    public class GetProductTagsVM
-    {
-        public int ProductTagId { get; set; }
-        public int TagId { get; set; }
-        public string TagName { get; set; }
-    }
-
     public class EditUserVM
     {
         public string Id { get; set; }
@@ -379,62 +297,5 @@ namespace Fikarender.Models
         public string PostalCode { get; set; }
 
     }
-
-    public class WishlistVM
-    {
-        public int Id { get; set; }
-        public string Picture { get; set; }
-        public double Price { get; set; }
-        public int ProductId { get; set; }
-        public string Title { get; set; }
-    }
-
-    public class UserInformationVM
-    {
-        public string FullName { get; set; }
-
-        [Display(Name = "کد ملی")]
-        public string NationalId { get; set; }
-
-        [Display(Name = "ایمیل")]
-        public string Email { get; set; }
-
-        [Display(Name = "جنسیت")]
-        public bool Gender { get; set; }
-
-        [Display(Name = "تلفن ثابت")]
-        public string PhoneNumber { get; set; }
-
-        [Display(Name = "تاریخ تولد")]
-        public DateTime? Birth { get; set; }
-    }
-
-    public class LatestUserOrderVM
-    {
-        public LatestUserOrderVM()
-        {
-        }
-
-        public string Id { get; set; }
-
-        public string Number { get; set; }
-
-        public DateTime PaymentDate { get; set; }
-
-        public byte Status { get; set; }
-        public double PostPrice { get; set; }
-
-        public double Amount { get; set; }
-
-        public double PaymentAmount { get; set; }
-    }
-
-    public class UserProfileViewModel
-    {
-        public UserInformationVM UserInformation { get; set; }
-        public List<LatestUserOrderVM> LatestOrder { get; set; }
-        public List<WishlistVM> WishlistInfo { get; set; }
-    }
-
     #endregion
 }

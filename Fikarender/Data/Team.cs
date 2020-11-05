@@ -8,16 +8,12 @@ namespace Fikarender.Data
 {
     public class Team
     {
-        public Team()
-        {
-        }
-
         [Key]
         public int TeamId { get; set; }
 
         [Display(Name = "نام و نام‌خانوادگی")]
-        [Required(ErrorMessage = "لطفا {0}راوارد کنید!")]
-        [MaxLength(300, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [MaxLength(256, ErrorMessage = "{0}نمیتواند بیشتراز {1}کارامتر باشد")]
         public string FullName { get; set; }
 
         [Display(Name = "ایمیل")]
@@ -33,19 +29,19 @@ namespace Fikarender.Data
 
         [Display(Name = "سمت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(200, MinimumLength = 8, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        [StringLength(256, MinimumLength = 8, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string Degree { get; set; }
 
-        [Display(Name = "عکس")]
+        [Display(Name = "تصویر پرسنلی")]
         [StringLength(50)]
         public string Avatar { get; set; }
 
         [Display(Name = "توضیحات")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, MinimumLength = 8, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string Description { get; set; }
 
         [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Sort { get; set; }
 
     }
