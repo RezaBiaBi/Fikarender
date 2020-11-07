@@ -32,6 +32,10 @@ namespace Fikarender.Data
         [Required(ErrorMessage = "لطفا {0} را وارد کنید!")]
         public string Content { get; set; }
 
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "لطفا {0} را وارد کنید!")]
+        public byte Sort { get; set; }
+
 
         #region Navigation Property 
         public virtual ICollection<WorkSample> WorkSamples { get; set; }

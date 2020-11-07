@@ -4,5 +4,11 @@
     "inputFiles": [
       "wwwroot/js/admin-assist.js"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/js/admin-worksample.min.js",
+    "inputFiles": [
+      "wwwroot/js/admin-worksample.js"
+    ]
   }
 ]

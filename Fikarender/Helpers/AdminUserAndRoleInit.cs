@@ -18,14 +18,14 @@ namespace Helpers
             {
                 var user = new ApplicationUser()
                 {
-                    /*Firstname = "ادمین",
+                    Firstname = "ادمین",
                     Lastname = "سیستم",
                     Email = "admin@example.com",
                     EmailConfirmed = true,
                     PhoneNumber = "09101234567",
                     PhoneNumberConfirmed = true,
                     RegisterDate = DateTime.Now,
-                    UserName = "09101234567"*/
+                    UserName = "09101234567"
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "P@ssw0rd1!").Result;

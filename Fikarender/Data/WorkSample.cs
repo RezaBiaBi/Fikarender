@@ -39,10 +39,6 @@ namespace Fikarender.Data
         [Display(Name = "تصویر")]
         [StringLength(128)]
         public string DocumentFile { get; set; }
-
-        [Display(Name = "لینک ویدئو نمونه‌کار")]
-        [MaxLength(1024, ErrorMessage = "{0}نمیتواند بیشتراز {1} کاراکتر باشد")]
-        public string SampleVideoLink { get; set; }
         
         [Display(Name = "محتوا")]
         [Required(ErrorMessage = "لطفا {0} راوارد کنید!")]

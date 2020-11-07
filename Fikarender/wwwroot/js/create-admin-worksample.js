@@ -10,18 +10,15 @@ CKEDITOR.replace('Description',
         customConfig: '/lib/ckeditor/Config.js'
     });
 
-/*function submit() {
-    if ($('#create-form').valid() == true) {
-        $('#create-form').submit();
-    }
-    if ($('#ParentId').val() >= 0) {
-        if ($('#edit-form').valid() == true) {
-            $('#edit-form').submit();
+function submit() {
+    if ($('#ServiceId').val() != 0) {
+        if ($('#create-form').valid() == true) {
+            $('#create-form').submit();
         }
     } else {
-        UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
+        UIkit.notification({ message: 'لطفا دسته خدمت نمونه کار را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
     }
-}*/
+}
 
 function readURL(input) {
     if (input.files && input.files[0]) {

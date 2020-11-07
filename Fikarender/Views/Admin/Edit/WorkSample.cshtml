@@ -1,12 +1,9 @@
-﻿
-@model WorkSample
+﻿@model WorkSample
 @{
     ViewData["pageId"] = 23;
     ViewData["Title"] = "ویرایش نمونه‌کار";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     List<Service> services = (List<Service>)ViewData["WorkSampleServiceId"];
-    bool workSampleIsShow = (bool)ViewData["workSampleIsShow"];
-    int currentService = (int)ViewData["currentService"];
 }
 @section Links{
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
@@ -24,21 +21,6 @@
         $(document).ready(function () {
             $('#ServiceId').select2({ width: '100%' });
         });
-        $(document).ready(function () {
-            $('#sampType').select2({ width: '100%' });
-        });
-        function submit() {
-            if ($('#edit-form').valid() == true) {
-                $('#edit-form').submit();
-            }
-            @*if ($('#ParentId').val() >= 0) {
-                if ($('#edit-form').valid() == true) {
-                    $('#edit-form').submit();
-                }
-            } else {
-                UIkit.notification({ message: 'لطفا دسته والد سرویس را انتخاب کنید.', status: 'danger', pos: 'bottom-center', timeout: 5000 });
-            }*@
-        }
         function readURL(input) {
             if (input.files && input.files[0]) {
 
@@ -72,78 +54,55 @@
     <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
     <input type="hidden" asp-for="WorkSampleId" />
     <input type="hidden" asp-for="DocumentFile" />
-    <input type="hidden" name="workSampleIsShow" value="@workSampleIsShow.ToString()" />
     <div class="uk-grid-small uk-child-width-1-1" uk-grid>
         <div>
             <div class="box">
                 <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
-                    <div class="uk-width-1-2@s">
-                        @*<span class="fa fa-phone"></span>*@
-                        <label asp-for="ServiceId" class="uk-form-label">سرویس نمونه‌کار</label>
-                        <select id="ServiceId" name="ServiceId" asp-for="ServiceId" class="uk-select uk-border-rounded">
-                            <option value="0" selected="selected">لطفا یک سرویس برای نمونه‌کارتان انتخاب کنید...</option>
-                            @foreach (var service in services)
+                    <div class="uk-width-1-1">
+                        <label asp-for="ServiceId" class="uk-form-label">خدمت والد نمونه‌کار</label>
+                        <select asp-for="ServiceId" class="uk-select uk-border-rounded">
+                            @foreach (var item in services.Where(a => a.ParentId == 0).OrderBy(a => a.Sort).ToList())
                             {
-                                <!option value="@service.ServiceId" @if (Model.ServiceId.Equals(service.ServiceId)) { <text> selected="selected" </text> }>
-                                    @service.ServiceTitle
-                                </!option>
+                                <optgroup label="@item.ServiceTitle">
+                                    @foreach (var service in services.Where(a => a.ParentId.Equals(item.ServiceId)).OrderBy(a => a.Sort).ToList())
+                                    {
+                                        <!option value="@service.ServiceId" @if (Model.ServiceId.Equals(service.ServiceId)) { <text>selected="selected"</text> }>@service.ServiceTitle</!option>
+                                    }
+                                </optgroup>
                             }
                         </select>
                         <span asp-validation-for="ServiceId" class="uk-text-danger"></span>
                     </div>
-                    @*<div class="uk-width-1-2@s">
-                            <span class="fa fa-file"></span>
-                            <label asp-for="SampleType" class="uk-form-label"></label>
-                            <select name="sampType" class="uk-select uk-border-rounded">
-                                <option value="-1" selected="selected">لطفا نوع فایل ارسالی را انتخاب کنید...</option>
-                                <!option value="0" @if (Model.SampleType.Equals(0)) { <text> selected="selected" </text> }>ویدئو</!option>
-                                <!option value="1" @if (Model.SampleType.Equals(1)) { <text> selected="selected" </text> }>عکس</!option>
-                                <!option value="2" @if (Model.SampleType.Equals(2)) { <text> selected="selected" </text> }>فایل</!option>
-                            </select>
-                            <span asp-validation-for="SampleType" class="uk-text-danger"></span>
-                        </div>*@
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="SampleVideoLink" class="uk-form-label"></label>
-                            <input asp-for="SampleVideoLink" type="text" class="uk-input uk-border-rounded" placeholder="لینک آپارات نمونه‌کار" />
-                            <span asp-validation-for="SampleVideoLink" class="uk-text-danger"></span>
-                        </div>
+                    <div>
+                        <label asp-for="Title" id="titleLabel" class="uk-form-label"></label>
+                        <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار...." />
+                        <span asp-validation-for="Title" id="titleValidate" class="uk-text-danger"></span>
                     </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="Title" class="uk-form-label"></label>
-                            <input asp-for="Title" class="uk-input uk-border-rounded" onchange="checkDupTitle()" placeholder="عنوان نمونه‌کار" />
-                            <span asp-validation-for="Title" class="uk-text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="MetaTitle" class="uk-form-label"></label>
-                            <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار در سئو" />
-                            <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
-                        </div>
+                    <div>
+                        <label asp-for="MetaTitle" class="uk-form-label"></label>
+                        <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار درسئو...." />
+                        <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
                     </div>
                 </div>
             </div>
         </div><hr />
         <div>
             <div class="box">
-                <div class="uk-width-1-2@s">
-                    <div class="uk-position-relative">
-                        <label class="uk-form-label"> وضعیت فعال؟ </label>
-                        @*<select asp-for="Status" name="Status" class="uk-select uk-border-rounded">
-                                <option value="-1" selected="selected">وضعیت نمونه‌کار ...</option>
-                                <!option value="1" @if (Model.Status) { <text> selected="selected" </text> }>فعال</!option>
-                                <!option value="0" @if (!Model.Status) { <text> selected="selected" </text> }>غیرفعال</!option>
-                            </select>*@
-                        <input asp-for="Status" class="uk-checkbox" />
+                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m">
+                    <div>
+                        <label class="uk-form-label">وضعیت فعال؟</label>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="Status" value="true" @if (Model.Status) { <text> checked</text> } /> فعال</label>
+                            <label><input class="uk-radio" type="radio" name="Status" value="false" @if (!Model.Status) { <text> checked</text> } /> غیر فعال</label>
+                        </div>
                         <span asp-validation-for="Status" class="uk-text-danger"></span>
                     </div>
-                </div>
-                <div class="uk-width-1-2@s">
-                    <div class="uk-position-relative">
+                    <div>
                         <label asp-for="IsShow" class="uk-form-label"></label>
-                        <input asp-for="IsShow" class="uk-checkbox" placeholder="وضعیت نمونه‌کار" />
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="IsShow" value="true" @if (Model.IsShow) { <text> checked</text> } /> فعال</label>
+                            <label><input class="uk-radio" type="radio" name="IsShow" value="false" @if (!Model.IsShow) { <text> checked</text> } /> غیر فعال</label>
+                        </div>
                         <span asp-validation-for="IsShow" class="uk-text-danger"></span>
                     </div>
                 </div>
@@ -151,26 +110,22 @@
         </div>
         <div>
             <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                    <div>
-                        <label asp-for="LongContent" class="uk-form-label"></label>
-                        <textarea asp-for="LongContent" class="uk-input uk-border-rounded" style="min-height: 600px"></textarea>
-                        <span asp-validation-for="LongContent" class="uk-text-danger"></span>
-                    </div>
+                <div>
+                    <label asp-for="LongContent" class="uk-form-label"></label>
+                    <textarea asp-for="LongContent" class="uk-input uk-border-rounded" style="min-height: 600px"></textarea>
+                    <span asp-validation-for="LongContent" class="uk-text-danger"></span>
                 </div>
             </div>
         </div><hr />
         <div>
             <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                    <div>
-                        <label asp-for="Description" class="uk-form-label"></label>
-                        <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 200px"></textarea>
-                        <span asp-validation-for="Description" class="uk-text-danger"></span>
-                    </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 200px"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
             </div>
-        </div><hr />
+        </div>
         <div>
             <div class="box">
                 <div class="uk-grid-small uk-child-width-1-1" uk-grid>
@@ -190,8 +145,8 @@
                             <div class="uk-grid-medium" uk-grid>
                                 <div class="uk-width-auto"> <span><i class="fa fa-image"></i></span> تصویر فعلی </div>
                                 <div class="uk-width-expand uk-text-center">
-                                    <a href="/worksample/pic-@Model.DocumentFile">
-                                        <img id="imgSample" width="300" height="300" class="uk-border-rounded uk-box-shadow-medium" src="~/worksample/pic-@Model.DocumentFile" />
+                                    <a href="/img/work-sample/pic-@Model.DocumentFile">
+                                        <img id="imgSample" width="300" height="300" class="uk-border-rounded uk-box-shadow-medium" src="/img/work-sample/pic-@Model.DocumentFile" />
                                     </a>
                                 </div>
                             </div>
@@ -199,7 +154,7 @@
                     </div>
                     <div class="uk-width-1-1 uk-text-center">
                         <div>
-                            <label class="uk-form-label">تصویر پرسنلی (اندازه مناسب w: 500px * h: 500px)</label>
+                            <label class="uk-form-label">تصویر (اندازه مناسب w: px * h: px)</label>
                         </div>
                         <div uk-form-custom="target: true">
                             <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>

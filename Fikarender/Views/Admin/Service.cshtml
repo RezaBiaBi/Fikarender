@@ -1,26 +1,22 @@
-﻿@model Service
-@using X.PagedList
-@using X.PagedList.Mvc.Core
+﻿@model IEnumerable<Service>
 
 @{
-    var data = ViewBag.data as IPagedList<Service>;
-    int p = data.PageNumber;
-    int s = data.PageSize;
-    int i = 1;
-    if (p > 1)
-    {
-        i = (s * p) - (s - 1);
-    }
     ViewData["pageId"] = 22;
     ViewData["Title"] = "خدمات";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-
-    @*List<WorkSample> workSamples = (List<WorkSample>)ViewData["workSamples"];*@
-    List<WorkSample> serviceWorkSamples = (List<WorkSample>)ViewData["serviceWorkSamples"];
 }
 @section Scripts{
-    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
-    <script src="~/js/admin-service.js" asp-append-version="true"></script>
+    <script>
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function toggleChildern(t) {
+            event.stopPropagation();
+            $(t).find('i').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
+            $(t).parents('tr').next('.detail-row').fadeToggle(400);
+        }
+    </script>
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -40,21 +36,21 @@
         <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
             <thead>
                 <tr>
-                    <th width="50">ردیف</th>
+                    <th width="50">@Html.DisplayNameFor(model => model.Sort)</th>
                     <th>@Html.DisplayNameFor(model => model.ServicePicture)</th>
                     <th>@Html.DisplayNameFor(model => model.ServiceTitle)</th>
                     <th>@Html.DisplayNameFor(model => model.ServiceMetaTitle)</th>
-                    <th>دسته ها</th>
-                    <th>نمایش نمونه‌کار</th>
+                    <th width="50">زیر دسته</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in data)
+                @foreach (var item in Model.Where(a => a.ParentId == 0).OrderBy(a => a.Sort).ToList())
                 {
+                    var children = Model.Where(a => a.ParentId.Equals(item.ServiceId)).OrderBy(a => a.Sort).ToList();
                     <tr class="uk-text-center">
-                        <td>@i</td>
+                        <td>@item.Sort</td>
                         <td><img src="~/img/service/@item.ServicePicture" width="50" /></td>
                         <td>
                             @Html.DisplayFor(modelItem => item.ServiceTitle)
@@ -62,85 +58,43 @@
                         <td>
                             @Html.DisplayFor(modelItem => item.ServiceMetaTitle)
                         </td>
-                        <td>
-                            @if (item.ParentId != null)
-                            {
-                                foreach (var service in data.Where(s => s.ServiceId.Equals(item.ParentId)))
-                                {
-                                    <p class="uk-text-center uk-text-primary">@Html.DisplayFor(modelItem => service.ServiceTitle)</p>
-                                    @*<hr />*@
-                                }
-                            }
-                            else
-                            {
-                                @Html.DisplayFor(modelItem => item.ServiceTitle) <span class="uk-text-success">(دسته مادر)</span>
-                            }
-                        </td>
-                        <td><button onclick="toggleVariants(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
-                        @*<td><button class="uk-button uk-button-primary uk-button-small" onclick="opration(@item.ServiceId, '@item.ServiceTitle')"><i class="fas fa-list-ul"></i></button></td>*@
+                        <td><button onclick="toggleChildern(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditService" asp-route-id="@item.ServiceId"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.ServiceId)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
-                    @if (item.WorkSamples.Any())
+                    @if (children.Any())
                     {
-                        int j = 1;
                         <tr class="detail-row" style="display:none">
                             <td colspan="8">
                                 <div class="uk-overflow-auto uk-border-rounded uk-box-shadow-medium">
                                     <table class="uk-table uk-table-small uk-table-striped uk-table-middle" style="background: #ccc">
                                         <thead>
                                             <tr>
-                                                <th width="50">ردیف</th>
-                                                <th>عنوان</th>
-                                                <th>وضعیت</th>
-                                                <th>نمایش در صفحه خدمات</th>
-                                                <th width="50">
-                                                    گالری
-                                                    @* @((Model.SampleType.Equals((byte) WorkSampleType.Picture) ? "تصویر" : "گالری"))*@
-                                                </th>
-                                                <th width="50">افزودن</th>
+                                                <th width="50">@Html.DisplayNameFor(model => model.Sort)</th>
+                                                <th>@Html.DisplayNameFor(model => model.ServicePicture)</th>
+                                                <th>@Html.DisplayNameFor(model => model.ServiceTitle)</th>
+                                                <th>@Html.DisplayNameFor(model => model.ServiceMetaTitle)</th>
+                                                <th width="50">نمونه کارها</th>
                                                 <th width="50">ویرایش</th>
                                                 <th width="50">حذف</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach (var sample in item.WorkSamples)
+                                            @foreach (var child in children)
                                             {
-                                                <tr class="uk-text-center">
-                                                    <td>@j</td>
+                                                <tr class="uk-text-center sm">
+                                                    <td>@child.Sort</td>
+                                                    <td><img src="~/img/service/@child.ServicePicture" width="45" /></td>
                                                     <td>
-                                                        <a asp-action="EditWorkSample" asp-route-serviceId="@sample.ServiceId">
-                                                            @Html.DisplayFor(modelItem => sample.Title)
-                                                        </a>
+                                                        @Html.DisplayFor(modelItem => child.ServiceTitle)
                                                     </td>
                                                     <td>
-                                                        @if (sample.Status)
-                                                        {<p class="uk-text-center uk-text-success">فعال</p>}
-                                                        else
-                                                        {<p class="uk-text-center uk-text-danger">غیرفعال</p>}
+                                                        @Html.DisplayFor(modelItem => child.ServiceMetaTitle)
                                                     </td>
-                                                    <td>
-                                                        @if (sample.IsShow)
-                                                        {<p class="uk-text-center uk-text-success"><span class="uk-badge"><i class="" uk-icon="check"></i></span></p>}
-                                                        else
-                                                        {<p class="uk-text-center uk-text-danger"><span class="uk-badge"><i class="" uk-icon="close"></i></span></p>}
-                                                    </td>
-                                                    <td>
-                                                        @if (!string.IsNullOrEmpty(sample.DocumentFile))
-                                                        {
-                                                            @*<a class="uk-button uk-button-primary uk-button-small" asp-action="Gallery" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-video"></i></a>*@
-                                                            <a id="imgFile" class="uk-box-shadow-hover-large" asp-action="Gallery" asp-route-serviceId="@item.ServiceId">
-                                                                <img src="~/workSample/pic-@sample.DocumentFile" width="200" />
-                                                            </a>
-                                                        }
-                                                        else
-                                                        {<p class="uk-text-center uk-text-warning">فایلی وجود ندارد</p>}
-                                                    </td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CreateWorkSample" asp-route-serviceId="@sample.ServiceId"><i class="fas fa-plus-circle"></i></a></td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditWorkSample" asp-route-id="@sample.WorkSampleId"><i class="far fa-edit"></i></a></td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="removeSample(@sample.WorkSampleId)"><i class="fas fa-trash-alt"></i></a></td>
+                                                    <td><a class="uk-button uk-button-primary uk-button-small" asp-action="WorkSample" asp-route-id="@child.ServiceId" target="_blank"><i class="far fa-eye"></i></a></td>
+                                                    <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditService" asp-route-id="@child.ServiceId"><i class="far fa-edit"></i></a></td>
+                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@child.ServiceId)"><i class="fas fa-trash-alt"></i></a></td>
                                                 </tr>
-                                                j++;
                                             }
                                         </tbody>
                                     </table>
@@ -156,46 +110,16 @@
                                     <div class="uk-grid-medium uk-text-center uk-child-width-1-1" uk-grid>
                                         <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
                                         <div>
-                                            <h4>تا کنون نمونه‌کاری برای این سرویس درج نشده است.</h4>
-                                        </div>
-                                        <div>
-                                            <a class="uk-button uk-button-primary uk-button-small" asp-action="CreateWorkSample" asp-route-serviceId="@item.ServiceId" target="_blank">افزودن نمونه‌کار جدید برای @item.ServiceTitle</a>
+                                            <h4>تا کنون زیر دسته ای برای این خدمت درج نشده است.</h4>
                                         </div>
                                     </div>
                                 </div>
                             </td>
                         </tr>
                     }
-                    i++;
                 }
             </tbody>
         </table>
-    </div>
-    @if (data.PageCount > 1)
-    {
-        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("Service", new { pageNumber = page }))
-        </div>
-    }
-</div>
-<div id="op-modal" uk-modal>
-    <div class="uk-modal-dialog">
-        <div class="uk-modal-header uk-light">
-            <h2 class="uk-modal-title"></h2>
-        </div>
-        <div class="uk-modal-body">
-            <div class="uk-flex uk-flex-center">
-                <ul class="uk-list uk-text-center uk-width-1-1 uk-width-1-3@m">
-                    <li><a id="gallery" href="#" target="_blank" class="uk-button uk-button-primary uk-width-1-1"> گالری</a></li>
-                    <li><button id="tags" class="uk-button uk-button-primary uk-width-1-1"> تگ ها</button></li>
-                    <li><a id="attr" href="#" target="_blank" class="uk-button uk-button-primary uk-width-1-1"> ویژگی ها</a></li>
-                    <li><a id="variant" href="#" target="_blank" class="uk-button uk-button-primary uk-width-1-1"> نرخ و ابعاد</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="uk-modal-footer uk-text-center">
-            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
-        </div>
     </div>
 </div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
@@ -209,20 +133,6 @@
             <p>این عملیات قابل بازگشت نیست</p>
             <div class="uk-modal-footer uk-text-center">
                 <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
-                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
-            </div>
-        </form>
-    </div>
-</div>
-<div id="delete-sample-modal" class="uk-flex-top" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-sample-form" method="post" asp-action="DeleteWorkSample" asp-controller="Admin">
-            <input id="id" type="hidden" name="id" />
-            @*<input id="sampleType" type="hidden" name="sampleType" />*@
-            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
-            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
-            <div class="uk-modal-footer uk-text-center">
-                <button class="uk-button uk-button-primary" onclick="$('#delete-sample-form').submit()" type="button">بلی</button>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>

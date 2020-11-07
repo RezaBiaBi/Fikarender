@@ -19,11 +19,11 @@
     <li @if (param == 4) { <text> class="active" </text> }>
         <a asp-action="Tag" asp-controller="Admin"><i class="uk-margin-left fas fa-tags"></i>تگ ها</a>
     </li>
-    <li @if (param == 20) { <text> class="active" </text> }>
-        <a asp-action="Faq" asp-controller="Admin"><i class="uk-margin-left fa fa-question-circle"></i>سوالات متداول</a>
+    <li @if (param == 6) { <text> class="active" </text> }>
+        <a asp-action="Contact" asp-controller="Admin"><i class="uk-margin-left fas fa-phone"></i>تماس ها</a>
     </li>
-    <li @if (param == 11) { <text> class="active" </text> }>
-        <a asp-action="Assist" asp-controller="Admin"><i class="uk-margin-left fa fa-handshake"></i>همکاری با ما</a>
+    <li @if (param == 7) { <text> class="active" </text> }>
+        <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
     </li>
     <li @if (param == 22) { <text> class="active" </text> }>
         <a asp-action="Service" asp-controller="Admin"><i class="uk-margin-left fa fa-microchip"></i>خدمات</a>
@@ -34,32 +34,29 @@
     <li @if (param == 24) { <text> class="active" </text> }>
         <a asp-action="Team" asp-controller="Admin"><i class="uk-margin-left fa fa-user-secret"></i>اعضای تیم</a>
     </li>
-    <li @if (param == 6) { <text> class="active" </text> }>
-        <a asp-action="Contact" asp-controller="Admin"><i class="uk-margin-left fas fa-phone"></i>تماس ها</a>
-    </li>
-    <li @if (param == 7) { <text> class="active" </text> }>
-        <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
-    </li>
     <li @if (param == 10) { <text> class="active" </text> }>
         <a asp-action="Gallery" asp-controller="Admin"><i class="uk-margin-left fas fa-images"></i>گالری تصاویر</a>
     </li>
+    <li @if (param == 11) { <text> class="active" </text> }>
+        <a asp-action="Assist" asp-controller="Admin"><i class="uk-margin-left fa fa-handshake"></i>همکاری با ما</a>
+    </li>
     @*<li class="uk-parent @if (param == 100 || param == 101 || param == 102 || param == 103 || param == 104) { <text>uk-open</text> }">
-        <a><i class="uk-margin-left fas fa-shopping-cart"></i>سفارشات</a>
-        <ul class="uk-nav-sub">
-            <li @if (param == 100) { <text> class="active" </text> }><a asp-action="Search" asp-controller="Admin">جستجوی فاکتور</a></li>
-            <li @if (param == 101) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.PaymentDone)">در صف بازبینی و تأیید</a></li>
-            <li @if (param == 102) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Proccessing)">در صف آماده سازی</a></li>
-            <li @if (param == 103) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Sent)">ارسال شده</a></li>
-            <li @if (param == 104) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Completed)">تحویل شده</a></li>
-        </ul>
-    </li>*@
-    <li class="uk-parent @if (param == 2 || param == 9 || param == 5 || param == 16) { <text>uk-open</text> }">
+            <a><i class="uk-margin-left fas fa-shopping-cart"></i>سفارشات</a>
+            <ul class="uk-nav-sub">
+                <li @if (param == 100) { <text> class="active" </text> }><a asp-action="Search" asp-controller="Admin">جستجوی فاکتور</a></li>
+                <li @if (param == 101) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.PaymentDone)">در صف بازبینی و تأیید</a></li>
+                <li @if (param == 102) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Proccessing)">در صف آماده سازی</a></li>
+                <li @if (param == 103) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Sent)">ارسال شده</a></li>
+                <li @if (param == 104) { <text> class="active" </text> }><a asp-action="Order" asp-controller="Admin" asp-route-status="@((byte)OrderStatus.Completed)">تحویل شده</a></li>
+            </ul>
+        </li>*@
+    <li class="uk-parent @if (param == 2 || param == 20 || param == 5 || param == 16) { <text>uk-open</text> }">
         <a><i class="uk-margin-left fas fa-cogs"></i>تنظیمات</a>
         <ul class="uk-nav-sub">
             <li @if (param == 5) { <text> class="active" </text> }><a asp-action="Slider" asp-controller="Admin">اسلایدر</a></li>
             <li @if (param == 16) { <text> class="active" </text> }><a asp-action="FeedbackSlider" asp-controller="Admin">بازخورد کاربران</a></li>
             <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Config" asp-controller="Admin">پیکر بندی سایت</a></li>
-            <li @if (param == 9) { <text> class="active" </text> }><a asp-action="" asp-controller="Admin">درگاه ها و بانک ها</a></li>
+            <li @if (param == 20) { <text> class="active" </text> }><a asp-action="Faq" asp-controller="Admin">سوالات متداول</a></li>
         </ul>
     </li>
 </ul>

@@ -153,6 +153,67 @@ namespace Fikarender.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
+        #region Gallery
+
+        [HttpGet]
+        public async Task<IActionResult> Gallery(int? pageNumber)
+        {
+            var data = db.UploadedFiles.AsNoTracking().OrderByDescending(a => a.Id);
+            var pageNum = pageNumber ?? 1;
+            var onePageOfData = await data.ToPagedListAsync(pageNum, 24);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> Gallery(List<IFormFile> images)
+        {
+            if (images == null)
+            {
+                return Json(false);
+            }
+            var validTypes = new string[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            foreach (var img in images)
+            {
+                if (validTypes.Contains(img.ContentType))
+                {
+                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\upload")))
+                    {
+                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\upload"));
+                    }
+
+                    string name = Path.GetRandomFileName();
+                    string ext = Path.GetExtension(img.FileName).ToLower();
+                    var fileName = name + ext;
+                    var path = Path.Combine(_environment.WebRootPath, "img\\upload", fileName);
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await img.CopyToAsync(stream);
+                    }
+                    var up = new UploadedFile
+                    {
+                        Name = name,
+                        Type = ext
+                    };
+                    await db.UploadedFiles.AddAsync(up);
+                }
+                else
+                {
+                    TempData["msg"] = $"فرمت فایل {img.FileName} مجاز نیست. |danger";
+                }
+            }
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                return Json(false);
+            }
+            return Json(true);
+        }
+
         [HttpPost]
         public JsonResult DeleteUploadedFile(int id)
         {
@@ -194,78 +255,6 @@ namespace Fikarender.Controllers
                 status = "danger";
             }
             return Json(new { msg, status });
-        }
-
-        #region Gallery
-
-        [HttpGet]
-        public async Task<IActionResult> Gallery(int? pageNumber, int? serviceId)
-        {
-            if (serviceId.HasValue)
-            {
-                ViewData["serviceWorkSamples"] = await db.WorkSamples.Where(w => w.ServiceId.Equals(serviceId)).ToListAsync();
-
-                var workSamples = db.WorkSamples.AsNoTracking().OrderByDescending(a => a.WorkSampleId);
-                var pageNumb = pageNumber ?? 1;
-                var onePageOfWorkSamples = await workSamples.ToPagedListAsync(pageNumb, 12);
-                ViewBag.workSamples = onePageOfWorkSamples;
-            }
-
-            var data = db.UploadedFiles.AsNoTracking().OrderByDescending(a => a.Id);
-            var pageNum = pageNumber ?? 1;
-            var onePageOfData = await data.ToPagedListAsync(pageNum, 24);
-            ViewBag.data = onePageOfData;
-            
-            return View();
-        }
-        
-        [HttpPost]
-        public async Task<JsonResult> Gallery(List<IFormFile> images)
-        {
-            if (images == null)
-            {
-                return Json(false);
-            }
-            var validTypes = new string[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-            foreach (var img in images)
-            {
-                if (validTypes.Contains(img.ContentType))
-                {
-                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\upload")))
-                    {
-                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\upload"));
-                    }
-
-                    string name = Path.GetRandomFileName();
-                    string ext = Path.GetExtension(img.FileName).ToLower();
-                    var fileName = name + ext;
-                    var path = Path.Combine(_environment.WebRootPath, "img\\upload", fileName);
-                    await using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await img.CopyToAsync(stream);
-                    }
-                    var up = new UploadedFile
-                    {
-                        Name = name,
-                        Type = ext
-                    };
-                    await db.UploadedFiles.AddAsync(up);
-                }
-                else
-                {
-                    TempData["msg"] = $"فرمت فایل {img.FileName} مجاز نیست. |danger";
-                }
-            }
-            try
-            {
-                await db.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                return Json(false);
-            }
-            return Json(true);
         }
 
         #endregion
@@ -524,22 +513,15 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Service(int? pageNumber, int? serviceId /*List<WorkSample>? workSamples*/)
+        public async Task<IActionResult> Service()
         {
-            ViewData["serviceWorkSamples"] = await db.WorkSamples.Where(a=>a.ServiceId.Equals(serviceId)).ToListAsync();//TODO Design this section (front)
-            /*ViewData["workSamples"] = workSamples;*/
-            var services = db.Services;
-            var pageNum = pageNumber ?? 1;
-            var onePageOfData = await services.ToPagedListAsync(pageNum, 10);
-            ViewBag.data = onePageOfData;
-
-            return View();
+            return View(await db.Services.AsNoTracking().ToListAsync());
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateService()
         {
-            ViewData["serviceId"] = await db.Services.ToListAsync();
+            ViewData["serviceId"] = await db.Services.Where(a => a.ParentId.Equals(0)).OrderBy(a => a.Sort).ToListAsync();
             return View("~/Views/Admin/Create/Service.cshtml");
         }
 
@@ -548,6 +530,11 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Services.AsNoTracking().AnyAsync(a => a.Sort.Equals(service.Sort) && a.ParentId.Equals(service.ParentId)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("CreateService");
+                }
                 if (servicePicture != null)
                 {
                     if (servicePicture.Length <= 512000)//TODO Change size file
@@ -615,10 +602,9 @@ namespace Fikarender.Controllers
         {
             if (!id.HasValue) return NotFound();
 
-            ViewData["serviceId"] = await db.Services.ToListAsync();
-            var service = await db.Services.FindAsync(id.Value);
+            ViewData["serviceId"] = await db.Services.Where(a => a.ParentId == 0).OrderBy(a => a.ServiceTitle).ToListAsync();
 
-            return View("~/Views/Admin/Edit/Service.cshtml", service);
+            return View("~/Views/Admin/Edit/Service.cshtml", await db.Services.FindAsync(id.Value));
         }
 
         [HttpPost]
@@ -626,6 +612,11 @@ namespace Fikarender.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await db.Services.AsNoTracking().AnyAsync(a => !a.ServiceId.Equals(service.ServiceId) && a.Sort.Equals(service.Sort) && a.ParentId.Equals(service.ParentId)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب وارد شده تکراری است. |danger";
+                    return RedirectToAction("CreateService");
+                }
                 var item = await db.Services.FindAsync(service.ServiceId);
                 item.Content = service.Content;
                 item.ParentId = service.ParentId;
@@ -728,31 +719,33 @@ namespace Fikarender.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> WorkSample(int? pageNumber)
+        public async Task<IActionResult> WorkSample(int? pageNumber, int? serviceId)
         {
+            var data = db.WorkSamples.AsQueryable();
+            if (serviceId.HasValue)
+                data = data.Where(a => a.ServiceId.Equals(serviceId));
+
             var pageNum = pageNumber ?? 1;
-            var onePageOfData = await db.WorkSamples.ToPagedListAsync(pageNum, 20);
+            var onePageOfData = await data.OrderBy(a => a.Title).ToPagedListAsync(pageNum, 20);
             ViewBag.data = onePageOfData;
+            ViewBag.serviceId = serviceId;
 
             return View();
         }
         
         [HttpGet]
-        public async Task<IActionResult> CreateWorkSample(int? serviceId)
+        public async Task<IActionResult> CreateWorkSample()
         {
-            var services = await db.Services.ToListAsync();
-            if (serviceId.HasValue) ViewData["selectedCreateService"] = await db.Services.Where(a => a.ServiceId.Equals(serviceId.Value)).Select(a => a.ServiceId).SingleAsync();
-            ViewData["WorkSampleServiceId"] = services;
+            ViewData["WorkSampleServiceId"] = await db.Services.AsNoTracking().ToListAsync();
 
             return View("~/Views/Admin/Create/WorkSample.cshtml");
         }
         
         [HttpPost]
-        public async Task<IActionResult> CreateWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType)//, int? serviceId
+        public async Task<IActionResult> CreateWorkSample(WorkSample workSample, IFormFile sampleFile)
         {
             if (ModelState.IsValid)
             {
-                if (sampType.Equals(-1)) return RedirectToAction("CreateWorkSample", new { serviceId = workSample.ServiceId });
                 if (workSample.ServiceId.Equals(0)) return RedirectToAction("CreateWorkSample", new { serviceId = workSample.ServiceId });
 
                 if (await db.WorkSamples.AnyAsync(w => w.Title.Equals(workSample.Title)))
@@ -762,15 +755,12 @@ namespace Fikarender.Controllers
                 }
                 if (workSample.IsShow)
                 {
-                    if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() >= 3)
+                    if (await db.WorkSamples.Where(w => w.IsShow && w.ServiceId.Equals(workSample.ServiceId)).CountAsync() >= 3)
                     {
                         TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3نمونه‌کار مجاز نیستید |danger";
                         return RedirectToAction("CreateWorkSample", new {serviceId = workSample.ServiceId});
                     }
                 }
-
-                /*if (Status.Equals(1)) workSample.Status = true;
-                else workSample.Status = false;*/
 
                 if (sampleFile != null)
                 {
@@ -836,31 +826,32 @@ namespace Fikarender.Controllers
         {
             if (!workSampleId.HasValue) return NotFound();
 
-            var workSample = await db.WorkSamples.FindAsync(workSampleId.Value);
-            var workSamplesIsShow = await db.WorkSamples.AnyAsync(a => a.IsShow && a.WorkSampleId.Equals(workSampleId));
-            if (workSamplesIsShow) ViewData["workSampleIsShow"] = true;
-            ViewData["currentService"] = workSample.ServiceId;
-            ViewData["WorkSampleServiceId"] = await db.Services.ToListAsync();
+            ViewData["WorkSampleServiceId"] = await db.Services.AsNoTracking().ToListAsync();
 
-            return View("~/Views/Admin/Edit/WorkSample.cshtml", workSample);
+            return View("~/Views/Admin/Edit/WorkSample.cshtml", await db.WorkSamples.FindAsync(workSampleId.Value));
         }
         
         [HttpPost]
-        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile, int sampType, string workSampleIsShow)//TODO Handle This Section
+        public async Task<IActionResult> EditWorkSample(WorkSample workSample, IFormFile sampleFile)
         {
             if (workSample.IsShow)
             {
-                if (sampType.Equals(-1)) return View("Edit/WorkSample", workSample);
-                if (workSample.ServiceId.Equals(0)) return View("Edit/WorkSample", workSample);
-
-                if (await db.WorkSamples.Where(w => w.IsShow).CountAsync() >= 3 && Convert.ToBoolean(workSampleIsShow).Equals(false))
+                if (await db.WorkSamples.Where(w => w.IsShow && w.ServiceId.Equals(workSample.ServiceId) && !w.WorkSampleId.Equals(workSample.WorkSampleId)).CountAsync() >= 3)
                 {
                     TempData["msg"] = "برای نمایش نمونه‌کار در خدمات بیشتراز 3تا مجاز نیستید |danger";
                     return RedirectToAction("EditWorkSample", new { workSampleId = workSample.WorkSampleId });
                 }
             }
-            /*if (Status.Equals(1)) workSample.Status = true;
-            else if (Status.Equals(0)) workSample.Status = false;*/
+
+            //handling relations on edit
+            var item = await db.WorkSamples.FindAsync(workSample.WorkSampleId);
+            item.Description = workSample.Description;
+            item.IsShow = workSample.IsShow;
+            item.LongContent = workSample.LongContent;
+            item.MetaTitle = workSample.MetaTitle;
+            item.ServiceId = workSample.ServiceId;
+            item.Status = workSample.Status;
+            item.Title = workSample.Title;
 
             if (ModelState.IsValid)
             {
@@ -874,7 +865,7 @@ namespace Fikarender.Controllers
                         {
                             Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\work-sample"));
                         }
-                        var deletePath = Path.Combine(_environment.WebRootPath, "img\\work-sample\\", $"pic-" + workSample.DocumentFile);
+                        var deletePath = Path.Combine(_environment.WebRootPath, "img\\work-sample\\", $"pic-" + item.DocumentFile);
                         System.IO.File.Delete(deletePath);
 
                         #endregion
@@ -886,8 +877,8 @@ namespace Fikarender.Controllers
                             await sampleFile.CopyToAsync(stream);
                         }
 
-                        workSample.DocumentFile = fileName;
-                        db.WorkSamples.Update(workSample);
+                        item.DocumentFile = fileName;
+                        db.WorkSamples.Update(item);
                         try
                         {
                             await db.SaveChangesAsync();
@@ -905,7 +896,7 @@ namespace Fikarender.Controllers
                 }
                 else
                 {
-                    db.Update(workSample);
+                    db.Update(item);
                     try
                     {
                         await db.SaveChangesAsync();

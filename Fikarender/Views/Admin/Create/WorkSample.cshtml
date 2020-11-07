@@ -1,11 +1,9 @@
-﻿
-@model WorkSample
+﻿@model WorkSample
 @{
     ViewData["pageId"] = 23;
     ViewData["Title"] = "افزودن نمونه‌کار";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     List<Service> services = (List<Service>)ViewData["WorkSampleServiceId"];
-    int? selectedCreateService = (int?)ViewData["selectedCreateService"];
 }
 @section Links{
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
@@ -19,7 +17,7 @@
 @section Scripts {
     <script src="~/lib/select2/select2.full.min.js"></script>
     <script src="~/lib/ckeditor/ckeditor.js"></script>
-    <script src="~/js/admin-worksample.js" asp-append-version="true"></script>
+    <script src="~/js/create-admin-worksample.min.js" asp-append-version="true"></script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
@@ -42,96 +40,79 @@
         <div>
             <div class="box">
                 <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m" uk-grid>
-                    <div class="uk-width-1-2@s">
-                        <label asp-for="ServiceId" class="uk-form-label">سرویس نمونه‌کار</label>
-                        <select id="ServiceId" name="ServiceId" asp-for="ServiceId" class="uk-select uk-border-rounded">
-                            <option value="0" selected="selected">لطفا یک سرویس برای نمونه‌کارتان انتخاب کنید...</option>
-                            @foreach (var service in services)
+                    <div class="uk-width-1-1">
+                        <label asp-for="ServiceId" class="uk-form-label">خدمت والد نمونه‌کار</label>
+                        <select asp-for="ServiceId" class="uk-select uk-border-rounded">
+                            <option value="0" selected="selected">لطفا یک خدمت برای نمونه‌کار انتخاب کنید...</option>
+                            @foreach (var item in services.Where(a => a.ParentId == 0).OrderBy(a => a.Sort).ToList())
                             {
-                                <!option value="@service.ServiceId" @if (selectedCreateService.HasValue) { <text> selected="selected" class="selected-service" </text> }>
-                                    @service.ServiceTitle
-                                </!option>
+                                <optgroup label="@item.ServiceTitle">
+                                    @foreach (var service in services.Where(a => a.ParentId.Equals(item.ServiceId)).OrderBy(a => a.Sort).ToList())
+                                    {
+                                        <option value="@service.ServiceId">@service.ServiceTitle</option>
+                                    }
+                                </optgroup>
                             }
                         </select>
                         <span asp-validation-for="ServiceId" class="uk-text-danger"></span>
                     </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="SampleVideoLink" class="uk-form-label"></label>
-                            <input asp-for="SampleVideoLink" type="text" class="uk-input uk-border-rounded" placeholder="لینک آپارات نمونه‌کار...." />
-                            <span asp-validation-for="SampleVideoLink" class="uk-text-danger"></span>
-                        </div>
+                    <div>
+                        <label asp-for="Title" id="titleLabel" class="uk-form-label"></label>
+                        <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار...." />
+                        <span asp-validation-for="Title" id="titleValidate" class="uk-text-danger"></span>
                     </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="Title" id="titleLabel" class="uk-form-label"></label>
-                            <input asp-for="Title" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار...." />
-                            <span asp-validation-for="Title" id="titleValidate" class="uk-text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            @*<span class="fa fa-phone"></span>*@
-                            <label asp-for="MetaTitle" class="uk-form-label"></label>
-                            <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار درسئو...." />
-                            <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div><hr />
-        <div>
-            <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m">
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label class="uk-form-label">وضعیت فعال؟</label>
-                            <input asp-for="Status" class="uk-checkbox uk-border-rounded" />
-                            <span asp-validation-for="Status" class="uk-text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="uk-width-1-2@s">
-                        <div class="uk-position-relative">
-                            <label asp-for="IsShow" class="uk-form-label"></label>
-                            <input asp-for="IsShow" class="uk-checkbox uk-border-rounded" />
-                            <span asp-validation-for="IsShow" class="uk-text-danger"></span>
-                        </div>
+                    <div>
+                        <label asp-for="MetaTitle" class="uk-form-label"></label>
+                        <input asp-for="MetaTitle" class="uk-input uk-border-rounded" placeholder="عنوان نمونه‌کار درسئو...." />
+                        <span asp-validation-for="MetaTitle" class="uk-text-danger"></span>
                     </div>
                 </div>
             </div>
         </div>
         <div>
             <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div class="uk-grid-small uk-child-width-1-1@s uk-child-width-1-2@m">
                     <div>
-                        <label asp-for="LongContent" class="uk-form-label"></label>
-                        <textarea asp-for="LongContent" class="uk-input uk-border-rounded" style="min-height: 600px"></textarea>
-                        <span asp-validation-for="LongContent" class="uk-text-danger"></span>
+                        <label class="uk-form-label">وضعیت فعال؟</label>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="Status" value="true" checked /> فعال</label>
+                            <label><input class="uk-radio" type="radio" name="Status" value="false" /> غیر فعال</label>
+                        </div>
+                        <span asp-validation-for="Status" class="uk-text-danger"></span>
                     </div>
+                    <div>
+                        <label asp-for="IsShow" class="uk-form-label"></label>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="IsShow" value="true" checked /> فعال</label>
+                            <label><input class="uk-radio" type="radio" name="IsShow" value="false" /> غیر فعال</label>
+                        </div>
+                        <span asp-validation-for="IsShow" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="box">
+                <div>
+                    <label asp-for="LongContent" class="uk-form-label"></label>
+                    <textarea asp-for="LongContent" class="uk-input uk-border-rounded"></textarea>
+                    <span asp-validation-for="LongContent" class="uk-text-danger"></span>
                 </div>
             </div>
         </div>
         <hr />
         <div>
             <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                    <div>
-                        <label asp-for="Description" class="uk-form-label"></label>
-                        <textarea asp-for="Description" class="uk-input uk-border-rounded" style="min-height: 200px"></textarea>
-                        <span asp-validation-for="Description" class="uk-text-danger"></span>
-                    </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-input uk-border-rounded"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
             </div>
         </div>
 
         <div>
             <div class="box">
-                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                    <div class="uk-alert-danger" uk-alert>
-                        <h3>تـوجه</h3><span><i class="fa fa-warning"></i></span>
-                        <p>اگر میخواهید تصویر سرویس را ویرایش کنید از بخش زیر انتخاب کنید. در غیر اینصورت فیلد پایین را خالی ارسال کنید.</p>
-                    </div>
-                </div>
                 <div class="uk-grid-small uk-child-width-1-2" uk-grid>
                     <div class="uk-width-1-1 uk-text-center">
                         <div class="uk-grid-medium" uk-grid>
@@ -157,7 +138,7 @@
     </div>
 </form>
 <div class="uk-text-center uk-margin-medium-top">
-    <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit();">
+    <button class="uk-button uk-button-primary" type="button" onclick="submit()">
         <span>افزودن نمونه‌کار</span><i class="fa fa-pencil-square-o" aria-hidden="true"></i>
     </button>
 </div>
